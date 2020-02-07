@@ -163,7 +163,11 @@ pip-selfcheck.json
 requirements.txt
 
 #other stuff in my folders
-sampling/
+docs/*
+!src/docs/.keep
+
+
+docs/sampling/
 #notebooks exclude folder structure
 notebooks/data
 notebooks/graphs
