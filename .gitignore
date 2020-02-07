@@ -174,7 +174,6 @@ src/graphs/*
 src/data/*/*
 !src/data/*/.keep
 
-#data folder in notebooks
 
 
 
