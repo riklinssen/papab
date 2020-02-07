@@ -138,6 +138,23 @@ pip-selfcheck.json
 # Virtualenv
 # http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
 
+
+# Created by https://www.gitignore.io/api/stata
+# Edit at https://www.gitignore.io/?templates=stata
+
+### Stata ###
+# .gitignore file for git projects containing Stata files
+# Commercial statistical software: http://www.stata.com
+
+# Stata dataset and output files
+*.dta
+*.gph
+*.log
+*.smcl
+*.stpr
+*.stsem
+
+
 # End of https://www.gitignore.io/api/venv,python,virtualenv,jupyternotebooks
 
 
@@ -145,12 +162,22 @@ pip-selfcheck.json
 .vscode/
 requirements.txt
 
-#data & graph folders
-data/
-notebooks/graphs/
+#other stuff in my folders
 sampling/
+#notebooks exclude folder structure
+notebooks/data
+notebooks/graphs
 
-src/graphs
+#data & graph folders (keep structure, not files in src) 
+src/graphs/*
+!src/graphs/.keep
+src/data/*/*
+!src/data/*/.keep
+
+#data folder in notebooks
+
+
+
 
 
 
