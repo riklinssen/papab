@@ -10,93 +10,13 @@ import matplotlib.patches as mpatches
 import matplotlib.gridspec as gridspec
 import matplotlib.dates as mdates
 import datetime
-
-
-# get the data
-
-#file for descriptives
-descrf=r"C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\4. Output\PAPAB Impact study - SocioDemographics.xlsx"
-
-
-
-#var and valuelables
-vallabsf=r"C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\2. Clean\ValueLabels_PAPAB.xls"
-varlabsf=r"C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\2. Clean\VariableLabels_PAPAB.xlsx"
-descr_labels=pd.read_excel(r"C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\4. Output\PAPAB Impact study - SocioDemographics Labeldict.xlsx", names=['var', 'label'])
-#file for descriptives
-descrf=r"C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\4. Output\PAPAB Impact study - SocioDemographics.xlsx"
-
-#clean data file
-cleanf=r"C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\2. Clean\PAPAB Impact study - Ready for analysis.dta"
-clean=pd.read_stata(cleanf)
-#tables for descriptives sociodemographics -->descr
-descr=pd.read_excel(descrf)
-descr.columns=['Variable', 'Group', 'Mean', 'SE', 'CI_lowerbound', 'CI_upperbound', 'N']
-#cols lowervcase
-descr.columns=[c.lower() for c in descr.columns]
-
-
-#labels for descriptives. 
-# bit of cleanup
-varl=list(descr_labels.iloc[:,1])
-# digits + period from a list of string 
-
-def remove(list): 
-    pattern = '[0-9.]'
-    list = [re.sub(pattern, '', i) for i in list]
-    
-    return list
-
-varl=remove(varl)
-
-#make dict
-descr_d = dict(
-    zip(
-        list(descr_labels.iloc[:, 0]),
-        [c.strip().capitalize() for c in varl]  # strip & capitalize
-    ))
-
-
-#descriptive stats --> respondent characteristics
-
-#make % for men
-
-gender=descr.loc[descr['variable']=='female', ['group','mean']]
-
-gender['Men']=1-gender['mean']
-respgender=gender.rename(columns={'mean': 'Women'})
-#respgender.set_index('group', inplace=True)
-#respgender=respgender.melt(id_vars=respgender.index, var_name='category', value_name='prop')
-
-respgender.set_index(['group'], inplace=True)
-respgender=pd.DataFrame(respgender.stack())
-respgender.columns=['prop']
-respgender.reset_index(inplace=True)
-respgender=respgender.rename(columns={'level_1': 'category'})
-
-# make educ with cats in col
-educcats=[c for c in descr['variable'].unique() if 'educ_cat' in c]
-respeduc=descr.loc[descr['variable'].isin(educcats), ['variable', 'group', 'mean']]
-
-# rows to cols pivot
-#
-respeduc=pd.pivot_table(respeduc, index=['group', 'variable']).reset_index()
-respeduc.columns=respgender.columns
-
-
-
-##agecategories with weighted stats 
-ages_df=clean.loc[:,['age','pip_generation_clean','weight_generation', 'weight_generation_inv']]
-print(ages_df.age.isna().sum()) # no missing values
-bins = [0, 24, 34, 44, 54, 64, np.inf]
-names = ['<24', '25-34', '35-44', '45-54', '55-64', '65+']
-ages_df['agerange'] = pd.cut(ages_df['age'], bins, labels=names)
-ages_dum=pd.get_dummies(ages_df['agerange'])
-
-ages_df=pd.concat([ages_df, ages_dum], axis=1,sort=False)
-
-#now aggregate averages across cats + a weight for all pip
+from pathlib import Path
+import re
 from statsmodels.stats.weightstats import DescrStatsW
+
+
+#utils/funcs
+
 def grouped_weights_statsdf(df, statscols, groupbycol, weightscol):
     """generates df with weighted means and 95% CI by groupbycol for cols in statscols
     
@@ -150,6 +70,86 @@ def grouped_weights_statsdf(df, statscols, groupbycol, weightscol):
 
 
 
+
+def remove(list):
+    """remove digits and periods in list, strip  & capitalize
+    """     
+    pattern = '[0-9.]'
+    p = [re.sub(pattern, '', i) for i in list]
+    l=[i.strip().capitalize() for i in p]
+    return l
+
+
+
+#paths
+root=Path.cwd()
+interim=root/"data"/"interim"
+clean=root/"data"/"clean"
+graphs=root/"graphs"
+descr=pd.read_excel(interim/"PAPAB Impact study - SocioDemographics.xlsx", names=['variable', 'group', 'mean', 'se', 'ci_lowerbound', 'ci_upperbound', 'n'], index_col=0)
+
+descr_labels=pd.read_excel(interim/"PAPAB Impact study - SocioDemographics Labeldict.xlsx", names=['var', 'label'])
+#make dict for readable categories
+varl=remove(list(descr_labels.label))
+descr_d = dict(
+    zip(
+        list(descr_labels.iloc[:, 0]), varl))
+descr_labels['var']=descr_labels['var'].replace(descr_d)
+
+
+
+
+
+#var and valuelables
+#vallabsf=r"C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\2. Clean\ValueLabels_PAPAB.xls"
+#varlabsf=r"C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\2. Clean\VariableLabels_PAPAB.xlsx"
+
+#tables for descriptives sociodemographics -->descr
+
+
+
+#descriptive stats --> respondent characteristics
+
+#make % for men
+
+respgender=descr.loc[['female'],['group','mean']]
+respgender['men']=1-respgender['mean']
+respgender.set_index(['group'], inplace=True)
+respgender.columns=['Men', 'Women']
+respgender=pd.DataFrame(respgender.stack())
+respgender.columns=['prop']
+
+
+respgender=respgender.rename(columns={'level_1': 'category'})
+
+# make educ with cats in col
+educcats=[c for c in descr.index if 'educ_cat' in c]
+respeduc=descr[descr.index.isin(educcats)][['group', 'mean']]
+
+# rows to cols pivot
+#
+respeduc=pd.pivot_table(respeduc, index=['group', 'variable']).reset_index()
+
+
+
+
+##agecategories with weighted stats
+# load in clean data
+
+clean=pd.read_stata(clean/"PAPAB Impact study - Ready for analysis.dta")
+
+#  
+ages_df=clean.loc[:,['age','pip_generation_clean','weight_generation', 'weight_generation_inv']]
+print(ages_df.age.isna().sum()) # no missing values
+bins = [0, 24, 34, 44, 54, 64, np.inf]
+names = ['<24', '25-34', '35-44', '45-54', '55-64', '65+']
+ages_df['agerange'] = pd.cut(ages_df['age'], bins, labels=names)
+ages_dum=pd.get_dummies(ages_df['agerange'])
+
+ages_df=pd.concat([ages_df, ages_dum], axis=1,sort=False)
+
+#now aggregate averages across cats + a weight for all pip
+
 ages_df_allpip=ages_df.loc[ages_df['pip_generation_clean'] != '5. NON-PIP-COMPARISON GROUP']
 ages_df_allpip['group']='PIP - All generations (weighted)'
 ages_df_allpip_wt=grouped_weights_statsdf(ages_df_allpip, names, 'group', 'weight_generation_inv').reset_index().pivot(index='groups', columns='outcome', values='weighted mean').reset_index()
@@ -182,14 +182,17 @@ glabeldict_cl=dict(zip([c for c in respage['group'].unique()], newlabels))  # fo
 
 
 #make similar labels across resp dfs
-
+respgender.reset_index(drop=False, inplace=True)
+respgender.columns=['group', 'category', 'prop']
 respgender['group']=respgender['group'].map(glabeldict)
+
 respeduc['group']=respeduc['group'].map(glabeldict)
 
 respage['group']=respage['group'].map(glabeldict_cl)
 
 #label categories
-respeduc['category']=respeduc['category'].map(descr_d)
+respeduc['category']=respeduc['variable'].map(descr_d)
+
 
 
 #colors for each gen
@@ -215,8 +218,12 @@ cmapgens = {'G 1': '#0B9CDA',
 respgender['color']=respgender['group'].map(cmapgens)
 respeduc['color']=respeduc['group'].map(cmapgens)
 respage['color']=respage['group'].map(cmapgens)
-#initialize plot
-# generation over cols, y over rows, 
+
+
+respeduc.columns=['group', 'variable', 'prop', 'category', 'color']
+
+
+
 
 
 #groupslist to iterate over
@@ -227,7 +234,7 @@ grouplist[-1], grouplist[-2] = grouplist[-2], grouplist[-1]
 
 
 
-####################REFACTOR BELOW###################
+####################descriptive statistics respondents###################
 
 
 fig, ((ax1, ax2, ax3, ax4, ax5, ax6), (ax7, ax8, ax9, ax10, ax11, ax12), (ax13, ax14, ax15, ax16, ax17, ax18))=plt.subplots(nrows=3, ncols=6, sharex='col', sharey='row', figsize=(6.26,6.26))
@@ -315,9 +322,9 @@ plt.figtext(0, 0, "Total n=962 \n*Average of all PIP-farmers is computed using s
 
 plt.subplots_adjust(hspace=0.05, wspace=0.3)
 
-plt.savefig(r"C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\5. Report\Graphs\descr_resp.svg", bbox_inches='tight')
+plt.savefig(graphs/'descr_resp.pdf', bbox_inches='tight')
 
-####################REFACTOR ABOVE###################
+#######################################
 
 
 ####################PREP for Farm characteristics###################
