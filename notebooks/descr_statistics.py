@@ -341,7 +341,7 @@ farmchars=(
     .rename(columns={'variable':'category', 'mean': 'prop'})
     .filter(['category','group','prop'])
     .assign(outcome=lambda x: x.category.replace(['farmtype1','farmtype2', 'farmtype3'], (['farmtype']*3)))
-    .
+    
 )
     
 
@@ -415,43 +415,3 @@ for ax in botr:
     #plot
 
 
-
-#make a dict with vars to cats (merging some cats in to a single var)
-
-# plt.clf()
-# print(genderax)
-
-# ###
-# import matplotlib.pyplot as plt
-# import matplotlib.gridspec as gridspec
-
-# fig = plt.figure()
-
-# gs1 = gridspec.GridSpec(5, 5)
-# countries = ["Country " + str(i) for i in range(1, 26)]
-# axs = []
-# for c, num in zip(countries, range(1,26)):
-#     axs.append(fig.add_subplot(gs1[num - 1]))
-#     axs[-1].plot([1, 2, 3], [1, 2, 3])
-
-# plt.show()
-
-
-# # However, to answer your question, you'll need to create the subplots at a slightly lower level to use gridspec. If you want to replicate the hiding of shared axes like subplots does, you'll need to do that manually, by using the sharey argument to Figure.add_subplot and hiding the duplicated ticks with plt.setp(ax.get_yticklabels(), visible=False).
-
-# #As an example:
-
-# import matplotlib.pyplot as plt
-# from matplotlib import gridspec
-
-# fig = plt.figure()
-# gs = gridspec.GridSpec(1,2)
-# ax1 = fig.add_subplot(gs[0])
-# ax2 = fig.add_subplot(gs[1], sharey=ax1)
-# plt.setp(ax2.get_yticklabels(), visible=False)
-
-# plt.setp([ax1, ax2], title='Test')
-# fig.suptitle('An overall title', size=20)
-# gs.tight_layout(fig, rect=[0, 0, 1, 0.97])
-
-# plt.show()
