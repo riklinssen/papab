@@ -227,6 +227,18 @@ for ax in botr:
         kleur=rect.get_facecolor()
         ax.text(x_place, y_value, label, verticalalignment='center', size='small', color=kleur)
 
+topleft=fig.axes[0]
+topleft.set_ylabel('Farm type', fontstyle='oblique')
+
+botleft=fig.axes[6]
+botleft.set_ylabel('% of land owned/rented', fontstyle='oblique')
+
+fig.align_ylabels()
+
+plt.subplots_adjust(hspace=0.2, wspace=0.3)
 
 ##footnotes
 plt.figtext(0, 0, "Total n=962 \n*Average of all PIP-farmers is computed using sampling weights", size='small',  ha="left") 
+
+plt.savefig(graphs/'descr_farmchars.pdf', bbox_inches='tight')
+
