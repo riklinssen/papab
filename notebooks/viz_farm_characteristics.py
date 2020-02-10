@@ -246,11 +246,11 @@ plt.subplots_adjust(hspace=0.2, wspace=0.3)
 ##footnotes
 plt.figtext(0, 0, "Total n=962 \n*Average of all PIP-farmers is computed using sampling weights", size='small',  ha="left") 
 
-plt.savefig(graphs/'descr_farmchars.svg', bbox_inches='tight')
+plt.savefig(graphs/'descr_farmchars.png', bbox_inches='tight')
 
 
 
-`#hectares
+#hectares
 sel=farmchars.loc['land_hectares'].reset_index()
 
 #order the same as other plots
@@ -259,7 +259,7 @@ sel2=sel2.append(sel.iloc[:2])
 
 
 
-fig, ax=plt.subplots(figsize=(3.13,(1.61*3.13)))
+fig, ax=plt.subplots(figsize=(3.13,3.13))
 sel2['color']=sel2['group'].map(cmapgens)
 ax1=ax.bar(height=sel2['prop'], x=sel2['group'], color=sel2['color'])
 
@@ -281,5 +281,5 @@ for ax in fig.axes:
 
 sns.despine()
 plt.figtext(0, -0.1, "Total n=962", size='small',  ha="left") 
-plt.savefig(graphs/'descr_farmchars_landuse.svg', bbox_inches='tight')
+plt.savefig(graphs/'descr_farmchars_landuse.png', bbox_inches='tight')
 
