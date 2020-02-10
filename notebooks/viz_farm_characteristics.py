@@ -150,6 +150,9 @@ farmchars=pd.pivot_table(farmchars, index=['outcome', 'group', 'category'], valu
 
 grouplist=newlabels
 
+#switch order of groups (comparison group last)
+grouplist[-1], grouplist[-2] = grouplist[-2], grouplist[-1]
+
 
 
 
