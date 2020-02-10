@@ -85,7 +85,10 @@ def remove(list):
 root=Path.cwd()
 interim=root/"data"/"interim"
 clean=root/"data"/"clean"
-graphs=root/"graphs"
+#graphs=root/"graphs"
+
+graphs=Path(r"C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\5. Report\Graphs")
+
 descr=pd.read_excel(interim/"PAPAB Impact study - SocioDemographics.xlsx", names=['variable', 'group', 'mean', 'se', 'ci_lowerbound', 'ci_upperbound', 'n'], index_col=0)
 
 descr_labels=pd.read_excel(interim/"PAPAB Impact study - SocioDemographics Labeldict.xlsx", names=['var', 'label'])
@@ -243,5 +246,5 @@ plt.subplots_adjust(hspace=0.2, wspace=0.3)
 ##footnotes
 plt.figtext(0, 0, "Total n=962 \n*Average of all PIP-farmers is computed using sampling weights", size='small',  ha="left") 
 
-plt.savefig(graphs/'descr_farmchars.pdf', bbox_inches='tight')
+plt.savefig(graphs/'descr_farmchars.svg', bbox_inches='tight')
 
