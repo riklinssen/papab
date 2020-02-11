@@ -13,8 +13,9 @@ import datetime
 from pathlib import Path
 import re
 from statsmodels.stats.weightstats import DescrStatsW
+import joypy
 
-
+sns.set_style('white')
 #utils/funcs
 
 def grouped_weights_statsdf(df, statscols, groupbycol, weightscol):
@@ -246,7 +247,7 @@ plt.subplots_adjust(hspace=0.2, wspace=0.3)
 ##footnotes
 plt.figtext(0, 0, "Total n=962 \n*Average of all PIP-farmers is computed using sampling weights", size='small',  ha="left") 
 
-plt.savefig(graphs/'descr_farmchars.png', bbox_inches='tight')
+plt.savefig(graphs/'descr_farmchars.svg', bbox_inches='tight')
 
 
 
@@ -281,5 +282,79 @@ for ax in fig.axes:
 
 sns.despine()
 plt.figtext(0, -0.1, "Total n=962", size='small',  ha="left") 
-plt.savefig(graphs/'descr_farmchars_landuse.png', bbox_inches='tight')
+plt.savefig(graphs/'descr_farmchars_landuse.svg', bbox_inches='tight')
 
+###pip completion
+cleanf=clean/"PAPAB Impact study - Ready for analysis.dta"
+clean=pd.read_stata(cleanf)
+joyd=clean[['pip_implemented', 'pip_generation_clean']].dropna(how='any')
+#n=488
+
+cmapgens = {'G 1': '#0B9CDA',
+            'G 2': '#53297D',
+            'G 3': '#630235',
+            'G 4': '#E43989',
+            'Comparison \n group': '#F16E22',
+            'All PIP* \n (average)': '#61A534'}
+
+# proper labeling
+glabeldict_cl={ '5. NON-PIP-COMPARISON GROUP' : 'Comparison \n group',
+ '3. PIP-Generation 3': 'G 3',
+ '2. PIP-Generation 2' : 'G 2',
+ '4. PIP-Generation 4':  'G 4',
+ '1. PIP-Generation 1': 'G 1' } 
+
+
+###cmapgens2={k: v for k in joyd.pip_generation_clean.unique(), v } 
+joyd['pip_generation_clean']=joyd['pip_generation_clean'].replace(glabeldict_cl)
+joyd['color']=joyd['pip_generation_clean'].map(cmapgens)
+
+
+
+
+fig,axes=joypy.joyplot(joyd, by='pip_generation_clean')#,  color=['#0B9CDA', '#53297D', '#630235','#E43989'])
+
+
+for ax, cl in zip(fig.axes, colors): 
+    ax.set_xlim([0,1])
+    ax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+    
+data=joyd.set_index('pip_generation_clean').drop(columns='color')
+
+
+cmap={'G 1': '#0B9CDA',
+            'G 2': '#53297D',
+            'G 3': '#630235',
+            'G 4': '#E43989'} 
+
+fig=plt.figure(figsize=((3.13,3.13)), constrained_layout=True)
+for i, gr in enumerate(groups):
+    sel=data.loc[gr]
+    ax=plt.subplot(4, 1, i+1)
+    sns.distplot(sel['pip_implemented'], hist=True, kde=True, color=cmap[gr])
+    ax.set_title(gr, color=cmap[gr], loc='left')
+    # xaxis
+    ax.set_xlim([0,1])
+    ax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+    ax.xaxis.set_visible(False)
+    ax.grid(False)
+       
+    # yaxis
+    ax.yaxis.set_visible(False)
+
+    ax.spines['left'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(True) 
+    if i==3: 
+        ax.xaxis.set_visible(True)
+        ax.set_xlabel("% of PiP-plan completion \n(in % 0-100)")
+        ax.grid(False)
+
+
+plt.subplots_adjust(hspace=0.6)
+plt.figtext(0, -0.05, "Total n=962" , size='small',  ha="left") 
+plt.suptitle("PiP-plan completion by generation", y=1.01)
+plt.savefig(graphs/'descr_pip_compl_bygen.svg', bbox_inches='tight')
+fig.tight_layout()
+fig.show()
