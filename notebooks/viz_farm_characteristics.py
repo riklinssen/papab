@@ -326,12 +326,12 @@ cmap={'G 1': '#0B9CDA',
             'G 2': '#53297D',
             'G 3': '#630235',
             'G 4': '#E43989'} 
-
+bins=np.linspace(0,1,num=10)
 fig=plt.figure(figsize=((3.13,3.13)), constrained_layout=True)
 for i, gr in enumerate(groups):
     sel=data.loc[gr]
     ax=plt.subplot(4, 1, i+1)
-    sns.distplot(sel['pip_implemented'], hist=True, kde=True, color=cmap[gr])
+    sns.distplot(sel['pip_implemented'], hist=True, bins=bins, kde=True,color=cmap[gr])
     ax.set_title(gr, color=cmap[gr], loc='left')
     # xaxis
     ax.set_xlim([0,1])
@@ -348,13 +348,21 @@ for i, gr in enumerate(groups):
     ax.spines['bottom'].set_visible(True) 
     if i==3: 
         ax.xaxis.set_visible(True)
-        ax.set_xlabel("% of PiP-plan completion \n(in % 0-100)")
+        ax.tick_params(which='x', direction='out', bottom=True, size=6, width=2) # can't make ticks visible check later
+        ax.set_xlabel("% of plan completed \n(in % 0-100)")
         ax.grid(False)
 
 
 plt.subplots_adjust(hspace=0.6)
 plt.figtext(0, -0.05, "Total n=962" , size='small',  ha="left") 
-plt.suptitle("PiP-plan completion by generation", y=1.01)
+plt.suptitle("Integrated Farm-management plan completion\nby generation", y=1.1)
 plt.savefig(graphs/'descr_pip_compl_bygen.svg', bbox_inches='tight')
 fig.tight_layout()
 fig.show()
+
+
+#check % of people that heard about pip approach
+
+print(clean.loc[clean['pip_generation_clean']=='5. NON-PIP-COMPARISON GROUP']['pip_approach'].value_counts(normalize=True, dropna=False))
+
+print(clean['pip_approach'].get_dummies())
