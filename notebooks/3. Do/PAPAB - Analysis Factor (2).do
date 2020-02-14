@@ -32,7 +32,8 @@ estimates clear
 /*
 *min-max rescaling for items not ranging from 1-5.
 
-*rescaling to min-max (1-5) according to formula: 
+*rescaling to min-max (1-5) according
+formula: 
 V(new)=	((Max(new)-Min(new))/(Max(old)-Min(old))*(Value(old)-Max(old)) + Max(new)
 
 
@@ -54,6 +55,9 @@ m_vilsup_coll_samevision  		(1-7)
 
 */
 
+
+
+
 rename m_pur_con_plans m_pur_con_plans_old
 rename m_pur_con_actionstaken m_pur_con_actionstaken_old
 rename m_att_eag_askothers m_att_eag_askothers_old
@@ -71,6 +75,12 @@ lab var	m_pur_con_actionstaken		"rescaled 1-5: 	Can you please describe concrete
 lab var	m_att_eag_askothers			"rescaled 1-5:	When you see changes on other farms, how often would you then ask the owner wh"	 
 lab var	m_hhsup_coll_whoplan		"rescaled 1-5:	Who is usually doing the planning of agricultural activities within the househo" 
 lab var	m_vilsup_coll_samevision	"rescaled 1-5:	People generally have the same vision, in this village?" 
+
+order	m_pur_con_plans	, 			before(	m_pur_con_plans_old				)
+order	m_pur_con_actionstaken, 		before(	m_pur_con_actionstaken_old	)
+order	m_att_eag_askothers	, 		before(	m_att_eag_askothers_old			)
+order	m_hhsup_coll_whoplan, 		before(	m_hhsup_coll_whoplan_old		)
+order	m_vilsup_coll_samevision, 	before(	m_vilsup_coll_samevision_old	)
 
 
 *purpose
