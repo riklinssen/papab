@@ -83,6 +83,10 @@ order	m_hhsup_coll_whoplan, 		before(	m_hhsup_coll_whoplan_old		)
 order	m_vilsup_coll_samevision, 	before(	m_vilsup_coll_samevision_old	)
 
 
+
+///////////motivation///////////
+
+
 *purpose
 tab1	 	m_pur_cur_valuelife m_pur_cur_proudlife m_pur_fut_stay m_pur_fut_condition m_pur_con_plans m_pur_con_actionstaken
 pwcorr 		m_pur_cur_valuelife m_pur_cur_proudlife m_pur_fut_stay m_pur_fut_condition m_pur_con_plans m_pur_con_actionstaken, st(0.5)
@@ -95,7 +99,7 @@ factor 		m_pur_cur_valuelife m_pur_cur_proudlife m_pur_fut_condition m_pur_con_p
 rotate, 	promax blanks(0.3)			
 			//all items have factor loadings >0.6 --> good
 alpha		m_pur_cur_valuelife m_pur_cur_proudlife m_pur_fut_condition m_pur_con_plans m_pur_con_actionstaken, gen(m_pur_mean)
-			//scale reliability: 0.8070
+			//scale reliability: 0.8127
 predict		m_pur_pr	
 		
 *autonomy
@@ -119,7 +123,7 @@ factor		m_att_eag_learnimprove m_att_eag_askothers m_att_open_shareknow m_att_op
 rotate,		promax blanks(0.3)
 			//all items >0.3 factor loading, but most of them have even higher values
 alpha		m_att_eag_learnimprove m_att_eag_askothers m_att_open_shareknow m_att_open_askothers m_att_drive_newpractices m_att_drive_improveproud, gen(m_att_mean)
-			//scale reliability: 0.8000
+			//scale reliability: 0.8026
 predict		m_att_pr
 
 *household support
@@ -169,9 +173,26 @@ rotate,		promax blanks(0.3)
 alpha		m_pur_mean m_aut_mean m_att_mean m_hhsup_mean m_vilsup_mean, gen (motivation_mean)
 predict		motivation_pr
 
+*motivation pr scaled between 0-100.
+
+
 *********************************************************************
 *Pillar 2: Resilience
 *********************************************************************
+
+
+/*
+
+Remove items that deal with evaluations of the past or give subjective evaluations of what has happenend (e.g. income compared to x years ago). 
+
+Component analyses 
+income diversity 		--> single item: r_inc_farm_sh_farm
+crop diversity 			--> nr of different annual & perrennial crops grown + nr of different crops grown on market 
+livestock situation 	--> nr of different livestock own + nr of livestock products sold on market + production of fodder + production fodder in dry season.
+household resilience	--> attitudinal indicator/latent measurement use as average on these items is in component analyses, keep factor analyses results in report (sub-construct scales well). 
+coping ability			--> attitudinal indicator/latent measurement use as average on these items is in component analyses, keep factor analyses results in report (sub-construct scales well). 
+
+*/
 
 //////////////////////////////////////
 *Items to sub construct
@@ -192,7 +213,7 @@ pwcorr		r_inc_farm_sh_farm r_inc_farm_sh_stable r_inc_farm_sh_sme r_inc_farm_sh_
 tab1		r_inc_farm_sh_farm
 gen 		r_inc_farm_mean=r_inc_farm_sh_farm
 
-	*Change in income:
+/*	*Change in income: --> leave out income change measures in resilience scale. 
 tab1		r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough
 pwcorr		r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough, st(0.5)
 factor		r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough, pf mine(1)
@@ -203,13 +224,14 @@ rotate,		promax blanks(0.3)
 			//ok
 alpha		r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other, gen(r_inc_change_mean)
 predict		r_inc_change_pr
-
-//for income: factor analysis best way forward, or component?
-
+*/ 
 
 
 
-*Crop diversity
+
+
+*Crop diversity old
+/*
 tab1 		r_crop_ann_cult_maize r_crop_ann_cult_sorghum r_crop_ann_cult_cassava r_crop_ann_cult_rice r_crop_ann_cult_irishpotato r_crop_ann_cult_sweetpotato r_crop_ann_cult_colocase r_crop_ann_cult_eleusine r_crop_ann_cult_beans r_crop_ann_cult_greenpeas r_crop_ann_cult_cajapeas r_crop_ann_cult_cabbage r_crop_ann_cult_amaranth r_crop_ann_cult_carrot r_crop_ann_cult_tomato r_crop_ann_cult_beet r_crop_ann_cult_eggplant r_crop_ann_cult_pepper r_crop_ann_cult_spinach r_crop_ann_cult_cucumber r_crop_ann_cult_yams r_crop_ann_cult_onions r_crop_ann_cult_watermelon r_crop_ann_cult_squash r_crop_ann_cult_other1 r_crop_ann_cult_other2  r_crop_ann_cult_total r_crop_ann_sell_maize r_crop_ann_sell_sorghum r_crop_ann_sell_cassava r_crop_ann_sell_rice r_crop_ann_sell_irishpotato r_crop_ann_sell_sweetpotato r_crop_ann_sell_colocase r_crop_ann_sell_eleusine r_crop_ann_sell_beans r_crop_ann_sell_greenpeas r_crop_ann_sell_cajapeas r_crop_ann_sell_cabbage r_crop_ann_sell_amaranth r_crop_ann_sell_carrot r_crop_ann_sell_tomato r_crop_ann_sell_beet r_crop_ann_sell_eggplant r_crop_ann_sell_pepper r_crop_ann_sell_spinach r_crop_ann_sell_cucumber r_crop_ann_sell_yams r_crop_ann_sell_onions r_crop_ann_sell_watermelon r_crop_ann_sell_squash r_crop_ann_sell_other1 r_crop_ann_sell_other2 r_crop_ann_sell_total r_crop_ann_change r_crop_per_cult_palmoil r_crop_per_cult_bananas r_crop_per_cult_mango r_crop_per_cult_avocado r_crop_per_cult_papaya r_crop_per_cult_guava r_crop_per_cult_lemon r_crop_per_cult_orange r_crop_per_cult_coffee r_crop_per_cult_other1 r_crop_per_cult_other2 r_crop_per_cult_total  r_crop_per_sell_palmoil r_crop_per_sell_bananas r_crop_per_sell_mango r_crop_per_sell_avocado r_crop_per_sell_papaya r_crop_per_sell_guava r_crop_per_sell_lemon r_crop_per_sell_orange r_crop_per_sell_coffee r_crop_per_sell_other1 r_crop_per_sell_other2 r_crop_per_sell_total r_crop_per_cult_change r_crop_inc_change
 tab1		r_crop_ann_cult_total r_crop_ann_sell_total r_crop_ann_change r_crop_per_cult_total r_crop_per_sell_total r_crop_per_cult_change r_crop_inc_change
 pwcorr		r_crop_ann_cult_total r_crop_ann_sell_total r_crop_ann_change r_crop_per_cult_total r_crop_per_sell_total r_crop_per_cult_change r_crop_inc_change, st(0.5)
@@ -221,6 +243,9 @@ rotate,		promax blanks(0.3)
 alpha		r_crop_ann_cult_total r_crop_ann_sell_total r_crop_ann_change r_crop_per_cult_total r_crop_per_sell_total r_crop_per_cult_change r_crop_inc_change, gen(r_crop_mean)
 			//scale reliability: 0.7736
 predict		r_crop_pr
+
+*Crop diversity new
+
 
 	*Overview of crops:
 //	
@@ -254,6 +279,25 @@ alpha		r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_health_medical r_lvst
 predict		r_lvstck_pr			
 
 *Household resilience
+/*
+list of items that need min-max rescaling: 
+
+///////////household resilience///////////
+r_res_food_mean					(1-3)  
+
+*/
+rename r_res_food_mean r_res_food_mean_old
+
+gen	r_res_food_mean				=	((5-1)/(3-1))	*	(	r_res_food_mean_old				-	3)		+	5
+
+lab var	r_res_food_mean				"rescaled 1-5:	 Mean of food situation over past 12 months "
+
+order	r_res_food_mean	, 			before(	r_res_food_mean_old				)
+
+
+
+
+
 tab1 		r_res_food_mean r_res_food_health_hh r_res_skills_farm_mngmt r_res_skills_access r_res_skills_problem r_res_org_planningtasks r_res_org_decic_farminput r_res_org_decic_croptype
 pwcorr		r_res_food_mean r_res_food_health_hh r_res_skills_farm_mngmt r_res_skills_access r_res_skills_problem r_res_org_planningtasks r_res_org_decic_farminput r_res_org_decic_croptype, st(0.5)
 			//all high correlation (>0.3), and significant
