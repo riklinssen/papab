@@ -8,6 +8,8 @@
 *********************************************************************
 *IMPORT+CD
 *********************************************************************
+*TEST git
+
 
 cd "C:/Users/`c(username)'/Box\ONL-IMK/2.0 Projects/Current/2018-05 PAPAB Burundi/07. Analysis & reflection/Data & Analysis"
 use "2. Clean\PAPAB Impact study - Analysis2 Incl Factors.dta", clear
