@@ -186,8 +186,8 @@ predict		motivation_pr
 Remove items that deal with evaluations of the past or give subjective evaluations of what has happenend (e.g. income compared to x years ago). 
 
 Component analyses 
-income diversity 		--> single item: r_inc_farm_sh_farm
-crop diversity 			--> nr of different annual & perrennial crops grown + nr of different crops grown on market 
+income diversity 		--> single item: r_inc_farm_sh_farm --> median share of income derived from farming income=100%
+crop diversity 			--> nr of different annual & perrennial crops grown + nr of different crops grown sold on market 
 livestock situation 	--> nr of different livestock own + nr of livestock products sold on market + production of fodder + production fodder in dry season.
 household resilience	--> attitudinal indicator/latent measurement use as average on these items is in component analyses, keep factor analyses results in report (sub-construct scales well). 
 coping ability			--> attitudinal indicator/latent measurement use as average on these items is in component analyses, keep factor analyses results in report (sub-construct scales well). 
@@ -202,13 +202,13 @@ coping ability			--> attitudinal indicator/latent measurement use as average on 
 egen r_inc_farm_sh_nonfarm=rowtotal(r_inc_farm_sh_stable r_inc_farm_sh_sme r_inc_farm_sh_other1)
 order r_inc_farm_sh_nonfarm, after(r_inc_farm_sh_other1)
 lab var r_inc_farm_sh_nonfarm "Share: income nonfarm (sum stable+sme+other1)"
-
+/*
 tab1		r_inc_farm_subscrop r_inc_farm_subslivestock r_inc_farm_salefieldcrop r_inc_farm_salecashcrop r_inc_farm_saleorchard r_inc_farm_salelivestock r_inc_farm_saleprepfood r_inc_farm_agrwage r_inc_farm_shepherd r_inc_farm_miller r_inc_farm_unskilledday r_inc_farm_skilled r_inc_farm_employee r_inc_farm_trade r_inc_farm_firewood r_inc_farm_handicrafts r_inc_farm_carpet r_inc_farm_mining r_inc_farm_military r_inc_farm_taxi r_inc_farm_remitt_out r_inc_farm_remitt_in r_inc_farm_pension r_inc_farm_govbenefit r_inc_farm_rental r_inc_farm_foodaid r_inc_farm_begging r_inc_farm_commerce r_inc_farm_other r_inc_farm_farm r_inc_farm_stable r_inc_farm_sme r_inc_farm_other1 r_inc_farm_sh_subscrop r_inc_farm_sh_subslivestock r_inc_farm_sh_salefieldcrop r_inc_farm_sh_salecashcrop r_inc_farm_sh_saleorchard r_inc_farm_sh_salelivestock r_inc_farm_sh_saleprepfood r_inc_farm_sh_agrwage r_inc_farm_sh_shepherd r_inc_farm_sh_miller r_inc_farm_sh_unskilledday r_inc_farm_sh_skilled r_inc_farm_sh_employee r_inc_farm_sh_trade r_inc_farm_sh_firewood r_inc_farm_sh_handicrafts r_inc_farm_sh_carpet r_inc_farm_sh_mining r_inc_farm_sh_military r_inc_farm_sh_taxi r_inc_farm_sh_remitt_out r_inc_farm_sh_remitt_in r_inc_farm_sh_pension r_inc_farm_sh_govbenefit r_inc_farm_sh_rental r_inc_farm_sh_foodaid r_inc_farm_sh_begging r_inc_farm_sh_commerce r_inc_farm_sh_other r_inc_farm_sh_farm r_inc_farm_sh_stable r_inc_farm_sh_sme r_inc_farm_sh_other1 r_inc_farm_actsh_labor r_inc_farm_actsh_sowing r_inc_farm_actsh_weeding r_inc_farm_actsh_harvesting r_inc_farm_actsh_sorting r_inc_farm_actsh_drying r_inc_farm_actsh_tightening r_inc_farm_actsh_transport r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough
 tab1		r_inc_farm_sh_farm r_inc_farm_sh_stable r_inc_farm_sh_sme r_inc_farm_sh_other1 r_inc_farm_totalnr r_inc_farm_actsh_labor r_inc_farm_actsh_sowing r_inc_farm_actsh_weeding r_inc_farm_actsh_harvesting r_inc_farm_actsh_sorting r_inc_farm_actsh_drying r_inc_farm_actsh_tightening r_inc_farm_actsh_transport r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough
 pwcorr		r_inc_farm_sh_farm r_inc_farm_sh_stable r_inc_farm_sh_sme r_inc_farm_sh_other1 r_inc_farm_totalnr r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough, st(0.5)
 			//negative correlation between income categories, which makes sense becuase together construct income
 			//as farming is biggest income source, and these variables are meant to represent farm income (see conceptual framework), continue with r_inc_farm_sh_farm only
-
+*/
 	*Income sources:
 tab1		r_inc_farm_sh_farm
 gen 		r_inc_farm_mean=r_inc_farm_sh_farm
@@ -245,13 +245,12 @@ alpha		r_crop_ann_cult_total r_crop_ann_sell_total r_crop_ann_change r_crop_per_
 predict		r_crop_pr
 
 *Crop diversity new
-
-
-	*Overview of crops:
-//	
+*number of different annual and perrenial crops cultivated
+*/
+tab1  r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total
 	
-	
-	*Change in crops:
+/*	
+	*Change in crops: --> leave out change in crops in resilience scale. 
 tab1		r_crop_ann_change r_crop_per_cult_change r_crop_inc_change
 pwcorr		r_crop_ann_change r_crop_per_cult_change r_crop_inc_change, st(0.5)
 factor		r_crop_ann_change r_crop_per_cult_change r_crop_inc_change, pf mine(1)
@@ -277,6 +276,16 @@ rotate,		promax blanks (0.3)
 			//all >=0.4065
 alpha		r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_health_medical r_lvstck_nutr_producefeed r_lvstck_nutr_fodder, gen(r_lvstck_mean)
 predict		r_lvstck_pr			
+*/
+
+*livestock situation new
+*total number of different types of livestock owned and sold at the market
+*r_lvstck_div_total r_lvstck_div_sell_total
+*set to 0 if no livestock (also for fodder items 0 if no livestock)
+foreach v in r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder{ 
+replace `v'=0 if r_lvstck_own==0
+} 
+
 
 *Household resilience
 /*
@@ -313,7 +322,7 @@ predict		r_res_pr
 tab1		r_cop_shock_illness r_cop_shock_death r_cop_shock_injury r_cop_shock_jobloss r_cop_shock_wagecut r_cop_shock_cropfailure r_cop_shock_noremitt r_cop_shock_drought r_cop_shock_flood r_cop_shock_naturalhazard r_cop_shock_theft r_cop_shock_suddenexpenses r_cop_shock_total r_cop_shock_cat r_cop_shock_severity r_cop_strategy_changecope r_cop_strategy_abilitycope r_cop_assets_managefarm r_cop_assets_managehh
 pwcorr		r_cop_shock_cat r_cop_shock_severity r_cop_strategy_changecope r_cop_strategy_abilitycope r_cop_assets_managefarm r_cop_assets_managehh, st(0.5)
 			//correlation significant and >0.1
-factor		r_cop_shock_cat r_cop_shock_severity r_cop_strategy_changecope r_cop_strategy_abilitycope r_cop_assets_managefarm r_cop_assets_managehh, pf mine(1)
+factor		r_cop_shock_cat r_cop_shock_severity r_cop_strategy_changecope r_cop_strategy_abilitycope r_cop_assets_managefarm r_cop_assets_managehh, components(1) mine(1) blanks(.3)
 			//1x eigen value>1
 rotate,		promax blanks (0.3)	
 			//variables for shock (r_cop_shock_cat r_cop_shock_severity) factor loading <0.3 so drop
@@ -325,8 +334,37 @@ alpha		r_cop_strategy_changecope r_cop_strategy_abilitycope r_cop_assets_managef
 			//scale reliability 0.7679
 predict		r_cop_pr
 
+
+
 //////////////////////////////////////
-*Sub constructs to pillar
+*Sub constructs to pillar COMPONENT ANALYSES
+//////////////////////////////////////
+/*items: 
+crop diversity:
+r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total 
+livestock situation:
+r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder
+household resilience:
+r_res_mean
+Coping ability:
+r_cop_mean
+*/
+tab1 	r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean
+
+pca		r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean, components(4) blanks(.3)
+*meh...
+rotate,		promax blanks (0.3)
+
+
+*try with total number of different crops grown and sold
+gen 	r_crop_cult_total	=	r_crop_ann_cult_total + r_crop_per_cult_total
+gen 	r_crop_sell_total 	= 	r_crop_ann_sell_total + r_crop_per_sell_total
+gen 	r_lvstck_total		=	r_lvstck_div_total + r_lvstck_div_sell_total
+pca		r_crop_cult_total r_crop_sell_total  r_lvstck_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean, components (1) blanks(.3)
+
+
+//////////////////////////////////////
+*Sub constructs to pillar OLD
 //////////////////////////////////////
 
 /*tab1 		r_inc_farm_mean r_inc_change_mean r_crop_mean r_lvstck_mean r_res_mean r_cop_mean
@@ -342,7 +380,7 @@ predict		resilience_pr*/
 
 
 
-
+*/
 *********************************************************************
 *Pillar 3: Stewardship
 *********************************************************************
