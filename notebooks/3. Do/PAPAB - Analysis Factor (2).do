@@ -28,6 +28,51 @@ estimates clear
 *Items to sub construct
 //////////////////////////////////////
 
+
+/*
+*min-max rescaling for items not ranging from 1-5.
+
+*rescaling to min-max (1-5) according to formula: 
+V(new)=	((Max(new)-Min(new))/(Max(old)-Min(old))*(Value(old)-Max(old)) + Max(new)
+
+
+list of items that need rescaling: 
+
+///////////motivation///////////
+m_pur_con_plans					(1-4)  
+m_pur_conactionstaken			(1-4) 
+
+attitude 
+m_att_eag_askothers				(1-4) 			
+m_att_drive_newpractices 		(1-9)
+
+household support
+m_hhsup_coll_whoplan  			(1-3)
+
+village support
+m_vilsup_coll_samevision  		(1-7)                    
+
+*/
+
+rename m_pur_con_plans m_pur_con_plans_old
+rename m_pur_con_actionstaken m_pur_con_actionstaken_old
+rename m_att_eag_askothers m_att_eag_askothers_old
+rename m_hhsup_coll_whoplan m_hhsup_coll_whoplan_old
+rename m_vilsup_coll_samevision m_vilsup_coll_samevision_old
+
+gen	m_pur_con_plans				=	((5-1)/(4-1))	*	(	m_pur_con_plans_old				-	4)		+	5
+gen	m_pur_con_actionstaken		=	((5-1)/(4-1))	*	(	m_pur_con_actionstaken_old		-	4)		+	5
+gen	m_att_eag_askothers			=	((5-1)/(4-1))	*	(	m_att_eag_askothers_old			-	4)		+	5
+gen	m_hhsup_coll_whoplan		=	((5-1)/(3-1))	*	(	m_hhsup_coll_whoplan_old		-	3)		+	5
+gen	m_vilsup_coll_samevision	=	((5-1)/(7-1))	*	(	m_vilsup_coll_samevision_old	-	7)		+	5
+
+lab var	m_pur_con_plans				"rescaled 1-5:	Can you please describe the plans or aspirations your household has for the near "
+lab var	m_pur_con_actionstaken		"rescaled 1-5: 	Can you please describe concrete actions our household has taken in the recent"
+lab var	m_att_eag_askothers			"rescaled 1-5:	When you see changes on other farms, how often would you then ask the owner wh"	 
+lab var	m_hhsup_coll_whoplan		"rescaled 1-5:	Who is usually doing the planning of agricultural activities within the househo" 
+lab var	m_vilsup_coll_samevision	"rescaled 1-5:	People generally have the same vision, in this village?" 
+
+
 *purpose
 tab1	 	m_pur_cur_valuelife m_pur_cur_proudlife m_pur_fut_stay m_pur_fut_condition m_pur_con_plans m_pur_con_actionstaken
 pwcorr 		m_pur_cur_valuelife m_pur_cur_proudlife m_pur_fut_stay m_pur_fut_condition m_pur_con_plans m_pur_con_actionstaken, st(0.5)
