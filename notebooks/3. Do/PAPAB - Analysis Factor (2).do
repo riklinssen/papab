@@ -348,10 +348,11 @@ household resilience:
 r_res_mean
 Coping ability:
 r_cop_mean
+
 */
 tab1 	r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean
 
-pca		r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean, components(4) blanks(.3)
+pca		r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean, blanks(.3)
 *meh...
 rotate,		promax blanks (0.3)
 
@@ -359,8 +360,22 @@ rotate,		promax blanks (0.3)
 *try with total number of different crops grown and sold
 gen 	r_crop_cult_total	=	r_crop_ann_cult_total + r_crop_per_cult_total
 gen 	r_crop_sell_total 	= 	r_crop_ann_sell_total + r_crop_per_sell_total
-gen 	r_lvstck_total		=	r_lvstck_div_total + r_lvstck_div_sell_total
-pca		r_crop_cult_total r_crop_sell_total  r_lvstck_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean, components (1) blanks(.3)
+gen 	r_lvstck_total		=	
+pca		r_crop_cult_total r_crop_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean, components(3)  blanks(.3)
+loadingplot, comp(3) combined
+
+rotate,		promax blanks (0.3)
+loadingplot, comp(3) combined
+predict	resilience_pr1 resilience_pr2 resilience_pr3 
+
+gen resilience_pr=resilience_pr1 + resilience_pr2 + resilience_pr3
+
+*rescale to 0-100
+gen resilience_score=(100-0)/ (13.01026 - -5.868702)*(resilience_pr - 13.01026)+100
+lab var resilience_pr1 "pr. Scores for comp1 - crop diversity-"
+lab var resilience_pr1 "pr Scores for comp2 - hh-resilience & coping ability-"
+lab var resilience_pr1 "pr. Scores for comp3 - livestock situation  -"
+lab var resilience_score "resilience score (0-100)"
 
 
 //////////////////////////////////////
@@ -374,7 +389,8 @@ factor		r_inc_farm_mean r_inc_change_mean r_crop_mean r_lvstck_mean r_res_mean r
 rotate,		promax blanks (0.3)
 			//all >0.3
 alpha		r_inc_farm_mean r_inc_change_mean r_crop_mean r_lvstck_mean r_res_mean r_cop_mean, gen(resilience_mean)
-predict		resilience_pr*/	
+predict		resilience_pr
+*/	
 
 //update
 
@@ -485,7 +501,7 @@ predict		stewardship_pr*/
 *Other
 *********************************************************************
 
-drop *_pr	//becuase not sure yet what to do with it
+*drop *_pr	//becuase not sure yet what to do with it
 
 
 *********************************************************************
