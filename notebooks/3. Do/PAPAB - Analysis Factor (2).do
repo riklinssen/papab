@@ -360,8 +360,8 @@ rotate,		promax blanks (0.3)
 *try with total number of different crops grown and sold
 gen 	r_crop_cult_total	=	r_crop_ann_cult_total + r_crop_per_cult_total
 gen 	r_crop_sell_total 	= 	r_crop_ann_sell_total + r_crop_per_sell_total
-gen 	r_lvstck_total		=	
-pca		r_crop_cult_total r_crop_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean, components(3)  blanks(.3)
+gen 	r_lvstck_total		=	r_lvstck_div_total + r_lvstck_div_sell_total
+pca		r_crop_cult_total r_crop_sell_total r_lvstck_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean, components(3)  blanks(.3)
 loadingplot, comp(3) combined
 
 rotate,		promax blanks (0.3)
@@ -370,12 +370,14 @@ predict	resilience_pr1 resilience_pr2 resilience_pr3
 
 gen resilience_pr=resilience_pr1 + resilience_pr2 + resilience_pr3
 
+
 *rescale to 0-100
 gen resilience_score=(100-0)/ (13.01026 - -5.868702)*(resilience_pr - 13.01026)+100
 lab var resilience_pr1 "pr. Scores for comp1 - crop diversity-"
-lab var resilience_pr1 "pr Scores for comp2 - hh-resilience & coping ability-"
-lab var resilience_pr1 "pr. Scores for comp3 - livestock situation  -"
-lab var resilience_score "resilience score (0-100)"
+lab var resilience_pr2 "pr Scores for comp2 - hh-resilience & coping ability-"
+lab var resilience_pr3 "pr. Scores for comp3 - livestock situation -"
+lab var	resilience_pr "pr. Scores for resilience (mean 3 resilience components)"
+lab var resilience_score "resilience score rescaled(0-100)"
 
 
 //////////////////////////////////////
@@ -396,7 +398,7 @@ predict		resilience_pr
 
 
 
-*/
+
 *********************************************************************
 *Pillar 3: Stewardship
 *********************************************************************
@@ -440,7 +442,6 @@ rotate,		promax blanks (0.3)
 alpha		s_land_physpract_total s_land_physpract_whyhow s_land_agro_change s_land_agro_whyhow s_land_mngmtpract_total s_land_mngmtpract_whyhow, gen(s_land_mean)
 predict		s_land_pr
 
-//check with Rik
 
 
 
@@ -486,7 +487,7 @@ predict		s_comm_pr
 *Sub constructs to pillar
 //////////////////////////////////////
 
-/*tab1 		s_awa_mean s_land_mean s_farm_mean s_comm_mean
+tab1 		s_awa_mean s_land_mean s_farm_mean s_comm_mean
 pwcorr		s_awa_mean s_land_mean s_farm_mean s_comm_mean, st(0.5)
 			//all positive and signifciant, and considerable
 factor		s_awa_mean s_land_mean s_farm_mean s_comm_mean, pf mine(1)
@@ -495,7 +496,7 @@ rotate,		promax blanks (0.3)
 			//all above 0.3
 alpha		s_awa_mean s_land_mean s_farm_mean s_comm_mean, gen(stewardship_mean)
 			//scale reliability: 0.8688
-predict		stewardship_pr*/
+*predict		stewardship_pr*
 
 *********************************************************************
 *Other
