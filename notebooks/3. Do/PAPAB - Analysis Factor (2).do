@@ -14,12 +14,6 @@ use "2. Clean\PAPAB Impact study - Analysis1.dta", clear
 set more off, perm
 estimates clear
 
-//for all:
-//check predict values, because they seem strange
-
-
-
-
 *********************************************************************
 *Pillar 1: Motivation
 *********************************************************************
@@ -27,7 +21,6 @@ estimates clear
 //////////////////////////////////////
 *Items to sub construct
 //////////////////////////////////////
-
 
 /*
 *min-max rescaling for items not ranging from 1-5.
@@ -39,53 +32,51 @@ V(new)=	((Max(new)-Min(new))/(Max(old)-Min(old))*(Value(old)-Max(old)) + Max(new
 
 list of items that need rescaling: 
 
-///////////motivation///////////
+purpose
 m_pur_con_plans					(1-4)  
 m_pur_conactionstaken			(1-4) 
 
 attitude 
 m_att_eag_askothers				(1-4) 			
-m_att_drive_newpractices 		(1-9)
+m_att_drive_newpractices 		(0-9)
 
 household support
 m_hhsup_coll_whoplan  			(1-3)
 
 village support
 m_vilsup_coll_samevision  		(1-7)                    
-
 */
-
-
-
+recode m_hhsup_coll_whoplan (2=1) (3=2) (4=3)	//about collaboration: husband/wife separate=1; jointly=2; whole hh=3
 
 rename m_pur_con_plans m_pur_con_plans_old
 rename m_pur_con_actionstaken m_pur_con_actionstaken_old
 rename m_att_eag_askothers m_att_eag_askothers_old
+rename m_att_drive_newpractices m_att_drive_newpractices_old
 rename m_hhsup_coll_whoplan m_hhsup_coll_whoplan_old
 rename m_vilsup_coll_samevision m_vilsup_coll_samevision_old
 
 gen	m_pur_con_plans				=	((5-1)/(4-1))	*	(	m_pur_con_plans_old				-	4)		+	5
 gen	m_pur_con_actionstaken		=	((5-1)/(4-1))	*	(	m_pur_con_actionstaken_old		-	4)		+	5
 gen	m_att_eag_askothers			=	((5-1)/(4-1))	*	(	m_att_eag_askothers_old			-	4)		+	5
+gen	m_att_drive_newpractices 	=	((5-1)/(9-0))	*	(	m_att_drive_newpractices_old	-	9)		+	5
 gen	m_hhsup_coll_whoplan		=	((5-1)/(3-1))	*	(	m_hhsup_coll_whoplan_old		-	3)		+	5
 gen	m_vilsup_coll_samevision	=	((5-1)/(7-1))	*	(	m_vilsup_coll_samevision_old	-	7)		+	5
 
 lab var	m_pur_con_plans				"rescaled 1-5:	Can you please describe the plans or aspirations your household has for the near "
 lab var	m_pur_con_actionstaken		"rescaled 1-5: 	Can you please describe concrete actions our household has taken in the recent"
 lab var	m_att_eag_askothers			"rescaled 1-5:	When you see changes on other farms, how often would you then ask the owner wh"	 
+lab var m_att_drive_newpractices 	"rescaled 1-5:  Please describe which new practices/tools you have tested"
 lab var	m_hhsup_coll_whoplan		"rescaled 1-5:	Who is usually doing the planning of agricultural activities within the househo" 
 lab var	m_vilsup_coll_samevision	"rescaled 1-5:	People generally have the same vision, in this village?" 
 
 order	m_pur_con_plans	, 			before(	m_pur_con_plans_old				)
-order	m_pur_con_actionstaken, 		before(	m_pur_con_actionstaken_old	)
+order	m_pur_con_actionstaken, 	before(	m_pur_con_actionstaken_old		)
 order	m_att_eag_askothers	, 		before(	m_att_eag_askothers_old			)
+order 	m_att_drive_newpractices, 	before( m_att_drive_newpractices_old	)
 order	m_hhsup_coll_whoplan, 		before(	m_hhsup_coll_whoplan_old		)
 order	m_vilsup_coll_samevision, 	before(	m_vilsup_coll_samevision_old	)
 
-
-
 ///////////motivation///////////
-
 
 *purpose
 tab1	 	m_pur_cur_valuelife m_pur_cur_proudlife m_pur_fut_stay m_pur_fut_condition m_pur_con_plans m_pur_con_actionstaken
@@ -123,12 +114,11 @@ factor		m_att_eag_learnimprove m_att_eag_askothers m_att_open_shareknow m_att_op
 rotate,		promax blanks(0.3)
 			//all items >0.3 factor loading, but most of them have even higher values
 alpha		m_att_eag_learnimprove m_att_eag_askothers m_att_open_shareknow m_att_open_askothers m_att_drive_newpractices m_att_drive_improveproud, gen(m_att_mean)
-			//scale reliability: 0.8026
+			//scale reliability: 0.8027
 predict		m_att_pr
 
 *household support
 tab1		m_hhsup_coll_collaborate m_hhsup_coll_whoplan m_hhsup_mut_undplan m_hhsup_mut_confl_hh m_hhsup_avail_accesslabour m_hhsup_avail_enoughmoney
-recode		m_hhsup_coll_whoplan (2=1) (3=2) (4=3)	//about collaboration: husband/wife separate=1; jointly=2; whole hh=3
 pwcorr		m_hhsup_coll_collaborate m_hhsup_coll_whoplan m_hhsup_mut_undplan m_hhsup_mut_confl_hh m_hhsup_avail_accesslabour m_hhsup_avail_enoughmoney, st(0.5)
 			//most of them are >0.1 and significant; not all (m_hhsup_mut_confl_hh)
 factor		m_hhsup_coll_collaborate m_hhsup_coll_whoplan m_hhsup_mut_undplan m_hhsup_mut_confl_hh m_hhsup_avail_accesslabour m_hhsup_avail_enoughmoney, pf mine(1)
@@ -138,7 +128,7 @@ rotate,		promax blanks(0.3)
 factor		m_hhsup_coll_collaborate m_hhsup_coll_whoplan m_hhsup_mut_undplan m_hhsup_avail_accesslabour m_hhsup_avail_enoughmoney, pf mine(1)
 rotate,		promax blanks(0.3)
 alpha		m_hhsup_coll_collaborate m_hhsup_coll_whoplan m_hhsup_mut_undplan m_hhsup_avail_accesslabour m_hhsup_avail_enoughmoney, gen(m_hhsup_mean)
-			//sclae reliablity: 0.6911
+			//sclae reliablity: 0.6564
 predict		m_hhsup_pr
 
 *village support
@@ -156,7 +146,7 @@ factor		m_vilsup_soc_feelvalued m_vilsup_trust_trust m_vilsup_trust_lendmoney m_
 rotate,		promax blanks(0.3)		
 			//all above >0.3, ok
 alpha		m_vilsup_soc_feelvalued m_vilsup_trust_trust m_vilsup_trust_lendmoney m_vilsup_coll_confl_solved m_vilsup_coll_samevision, gen(m_vilsup_mean)
-			//scale reliability: 0.5514
+			//scale reliability: 0.5855
 predict		m_vilsup_pr
 
 //////////////////////////////////////
@@ -173,25 +163,47 @@ rotate,		promax blanks(0.3)
 alpha		m_pur_mean m_aut_mean m_att_mean m_hhsup_mean m_vilsup_mean, gen (motivation_mean)
 predict		motivation_pr
 
-*motivation pr scaled between 0-100.
+/*
+//excl m_att_drive_newpractices
+alpha 		m_att_eag_learnimprove m_att_eag_askothers m_att_open_shareknow m_att_open_askothers  m_att_drive_improveproud, gen(m_att_mean2)
+alpha 		m_pur_mean m_aut_mean m_att_mean m_hhsup_mean m_vilsup_mean m_att_drive_newpractices, gen (motivation_mean2)
+pwcorr 		motivation_mean motivation_mean2, st(0.5) //0.9748*, high enough to conclude it can stay in
+drop 		m_att_mean2 motivation_mean2*/
 
+*motivation pr scaled between 0-100.
+sum 		motivation_pr
+gen 		motivation_score= (100-0) / (1.876993 - -3.078107) * (motivation_pr - 1.876993) + 100
+lab var 	motivation_score "Motivation score rescaled(0-100)"
+
+*Label recoded outcome variables (1-5)
+lab def purpose 			1 "Low purpose" 5 "High purpose"
+lab def autonomy 			1 "Low autonomy" 5 "High autonomy"
+lab def attitude 			1 "Low attitudes" 5 "High attitudes"
+lab def hhsup 				1 "Low household support" 5 "High household support"
+lab def vilsup 				1 "Low village support" 5 "High village support"
+lab def motivation 			1 "Low motivation" 5 "High motivation"
+lab def motivation_sc		0 "Low motivation" 100 "High motivation"
+lab val m_pur_mean 			purpose
+lab val m_aut_mean 			autonomy
+lab val m_att_mean 			attitude
+lab val m_hhsup_mean 		hhsup
+lab val m_vilsup_mean 		vilsup
+lab val motivation_mean		motivation
+lab val motivation_score	motivation_sc
 
 *********************************************************************
 *Pillar 2: Resilience
 *********************************************************************
 
-
 /*
-
 Remove items that deal with evaluations of the past or give subjective evaluations of what has happenend (e.g. income compared to x years ago). 
 
 Component analyses 
-income diversity 		--> single item: r_inc_farm_sh_farm --> median share of income derived from farming income=100%
+income diversity 		--> single item: r_inc_farm_sh_farm --> median share of income derived from farming income=100% --> not included does not discriminate
 crop diversity 			--> nr of different annual & perrennial crops grown + nr of different crops grown sold on market 
 livestock situation 	--> nr of different livestock own + nr of livestock products sold on market + production of fodder + production fodder in dry season.
 household resilience	--> attitudinal indicator/latent measurement use as average on these items is in component analyses, keep factor analyses results in report (sub-construct scales well). 
 coping ability			--> attitudinal indicator/latent measurement use as average on these items is in component analyses, keep factor analyses results in report (sub-construct scales well). 
-
 */
 
 //////////////////////////////////////
@@ -202,110 +214,48 @@ coping ability			--> attitudinal indicator/latent measurement use as average on 
 egen r_inc_farm_sh_nonfarm=rowtotal(r_inc_farm_sh_stable r_inc_farm_sh_sme r_inc_farm_sh_other1)
 order r_inc_farm_sh_nonfarm, after(r_inc_farm_sh_other1)
 lab var r_inc_farm_sh_nonfarm "Share: income nonfarm (sum stable+sme+other1)"
-/*
-tab1		r_inc_farm_subscrop r_inc_farm_subslivestock r_inc_farm_salefieldcrop r_inc_farm_salecashcrop r_inc_farm_saleorchard r_inc_farm_salelivestock r_inc_farm_saleprepfood r_inc_farm_agrwage r_inc_farm_shepherd r_inc_farm_miller r_inc_farm_unskilledday r_inc_farm_skilled r_inc_farm_employee r_inc_farm_trade r_inc_farm_firewood r_inc_farm_handicrafts r_inc_farm_carpet r_inc_farm_mining r_inc_farm_military r_inc_farm_taxi r_inc_farm_remitt_out r_inc_farm_remitt_in r_inc_farm_pension r_inc_farm_govbenefit r_inc_farm_rental r_inc_farm_foodaid r_inc_farm_begging r_inc_farm_commerce r_inc_farm_other r_inc_farm_farm r_inc_farm_stable r_inc_farm_sme r_inc_farm_other1 r_inc_farm_sh_subscrop r_inc_farm_sh_subslivestock r_inc_farm_sh_salefieldcrop r_inc_farm_sh_salecashcrop r_inc_farm_sh_saleorchard r_inc_farm_sh_salelivestock r_inc_farm_sh_saleprepfood r_inc_farm_sh_agrwage r_inc_farm_sh_shepherd r_inc_farm_sh_miller r_inc_farm_sh_unskilledday r_inc_farm_sh_skilled r_inc_farm_sh_employee r_inc_farm_sh_trade r_inc_farm_sh_firewood r_inc_farm_sh_handicrafts r_inc_farm_sh_carpet r_inc_farm_sh_mining r_inc_farm_sh_military r_inc_farm_sh_taxi r_inc_farm_sh_remitt_out r_inc_farm_sh_remitt_in r_inc_farm_sh_pension r_inc_farm_sh_govbenefit r_inc_farm_sh_rental r_inc_farm_sh_foodaid r_inc_farm_sh_begging r_inc_farm_sh_commerce r_inc_farm_sh_other r_inc_farm_sh_farm r_inc_farm_sh_stable r_inc_farm_sh_sme r_inc_farm_sh_other1 r_inc_farm_actsh_labor r_inc_farm_actsh_sowing r_inc_farm_actsh_weeding r_inc_farm_actsh_harvesting r_inc_farm_actsh_sorting r_inc_farm_actsh_drying r_inc_farm_actsh_tightening r_inc_farm_actsh_transport r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough
-tab1		r_inc_farm_sh_farm r_inc_farm_sh_stable r_inc_farm_sh_sme r_inc_farm_sh_other1 r_inc_farm_totalnr r_inc_farm_actsh_labor r_inc_farm_actsh_sowing r_inc_farm_actsh_weeding r_inc_farm_actsh_harvesting r_inc_farm_actsh_sorting r_inc_farm_actsh_drying r_inc_farm_actsh_tightening r_inc_farm_actsh_transport r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough
-pwcorr		r_inc_farm_sh_farm r_inc_farm_sh_stable r_inc_farm_sh_sme r_inc_farm_sh_other1 r_inc_farm_totalnr r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough, st(0.5)
-			//negative correlation between income categories, which makes sense becuase together construct income
-			//as farming is biggest income source, and these variables are meant to represent farm income (see conceptual framework), continue with r_inc_farm_sh_farm only
-*/
-	*Income sources:
+
+*Income sources:
 tab1		r_inc_farm_sh_farm
 gen 		r_inc_farm_mean=r_inc_farm_sh_farm
-
-/*	*Change in income: --> leave out income change measures in resilience scale. 
-tab1		r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough
-pwcorr		r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough, st(0.5)
-factor		r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_finance_vsla r_inc_finance_enough, pf mine(1)
-			//1x eigen value >1
-			//finance variables <0.3
-factor		r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other, pf mine(1)
-rotate,		promax blanks(0.3)
-			//ok
-alpha		r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other, gen(r_inc_change_mean)
-predict		r_inc_change_pr
-*/ 
-
-
-
-
-
-*Crop diversity old
-/*
-tab1 		r_crop_ann_cult_maize r_crop_ann_cult_sorghum r_crop_ann_cult_cassava r_crop_ann_cult_rice r_crop_ann_cult_irishpotato r_crop_ann_cult_sweetpotato r_crop_ann_cult_colocase r_crop_ann_cult_eleusine r_crop_ann_cult_beans r_crop_ann_cult_greenpeas r_crop_ann_cult_cajapeas r_crop_ann_cult_cabbage r_crop_ann_cult_amaranth r_crop_ann_cult_carrot r_crop_ann_cult_tomato r_crop_ann_cult_beet r_crop_ann_cult_eggplant r_crop_ann_cult_pepper r_crop_ann_cult_spinach r_crop_ann_cult_cucumber r_crop_ann_cult_yams r_crop_ann_cult_onions r_crop_ann_cult_watermelon r_crop_ann_cult_squash r_crop_ann_cult_other1 r_crop_ann_cult_other2  r_crop_ann_cult_total r_crop_ann_sell_maize r_crop_ann_sell_sorghum r_crop_ann_sell_cassava r_crop_ann_sell_rice r_crop_ann_sell_irishpotato r_crop_ann_sell_sweetpotato r_crop_ann_sell_colocase r_crop_ann_sell_eleusine r_crop_ann_sell_beans r_crop_ann_sell_greenpeas r_crop_ann_sell_cajapeas r_crop_ann_sell_cabbage r_crop_ann_sell_amaranth r_crop_ann_sell_carrot r_crop_ann_sell_tomato r_crop_ann_sell_beet r_crop_ann_sell_eggplant r_crop_ann_sell_pepper r_crop_ann_sell_spinach r_crop_ann_sell_cucumber r_crop_ann_sell_yams r_crop_ann_sell_onions r_crop_ann_sell_watermelon r_crop_ann_sell_squash r_crop_ann_sell_other1 r_crop_ann_sell_other2 r_crop_ann_sell_total r_crop_ann_change r_crop_per_cult_palmoil r_crop_per_cult_bananas r_crop_per_cult_mango r_crop_per_cult_avocado r_crop_per_cult_papaya r_crop_per_cult_guava r_crop_per_cult_lemon r_crop_per_cult_orange r_crop_per_cult_coffee r_crop_per_cult_other1 r_crop_per_cult_other2 r_crop_per_cult_total  r_crop_per_sell_palmoil r_crop_per_sell_bananas r_crop_per_sell_mango r_crop_per_sell_avocado r_crop_per_sell_papaya r_crop_per_sell_guava r_crop_per_sell_lemon r_crop_per_sell_orange r_crop_per_sell_coffee r_crop_per_sell_other1 r_crop_per_sell_other2 r_crop_per_sell_total r_crop_per_cult_change r_crop_inc_change
-tab1		r_crop_ann_cult_total r_crop_ann_sell_total r_crop_ann_change r_crop_per_cult_total r_crop_per_sell_total r_crop_per_cult_change r_crop_inc_change
-pwcorr		r_crop_ann_cult_total r_crop_ann_sell_total r_crop_ann_change r_crop_per_cult_total r_crop_per_sell_total r_crop_per_cult_change r_crop_inc_change, st(0.5)
-			//all >0.2 and significant
-factor		r_crop_ann_cult_total r_crop_ann_sell_total r_crop_ann_change r_crop_per_cult_total r_crop_per_sell_total r_crop_per_cult_change r_crop_inc_change, pf mine(1)
-			//1x eigenvalue >1
-rotate,		promax blanks(0.3)
-			//all >=0.53, so ok	
-alpha		r_crop_ann_cult_total r_crop_ann_sell_total r_crop_ann_change r_crop_per_cult_total r_crop_per_sell_total r_crop_per_cult_change r_crop_inc_change, gen(r_crop_mean)
-			//scale reliability: 0.7736
-predict		r_crop_pr
+			//but don't include, because doesn't discriminate
 
 *Crop diversity new
 *number of different annual and perrenial crops cultivated
-*/
+*--> leave out change in crops in resilience scale
 tab1  r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total
 	
-/*	
-	*Change in crops: --> leave out change in crops in resilience scale. 
-tab1		r_crop_ann_change r_crop_per_cult_change r_crop_inc_change
-pwcorr		r_crop_ann_change r_crop_per_cult_change r_crop_inc_change, st(0.5)
-factor		r_crop_ann_change r_crop_per_cult_change r_crop_inc_change, pf mine(1)
-
-///or: component analysis instead of factor?? 
-
-
-
-	
-
-*Livestock situation
-tab1		r_lvstck_own r_lvstck_div_cattle r_lvstck_div_goats r_lvstck_div_sheep r_lvstck_div_pigs r_lvstck_div_chicken r_lvstck_div_guineapigs r_lvstck_div_rabbits r_lvstck_div_ducks r_lvstck_div_poultry r_lvstck_div_other r_lvstck_div_total r_lvstck_div_sell_cattle r_lvstck_div_sell_goats r_lvstck_div_sell_sheep r_lvstck_div_sell_pigs r_lvstck_div_sell_chicken r_lvstck_div_sell_guineapigs r_lvstck_div_sell_rabbits r_lvstck_div_sell_ducks r_lvstck_div_sell_poultry r_lvstck_div_sell_other r_lvstck_div_sell_total r_lvstck_health r_lvstck_health_medical r_lvstck_nutr_producefeed r_lvstck_nutr_fodder
-recode 		r_lvstck_health_medical r_lvstck_nutr_producefeed r_lvstck_nutr_fodder (77=.) //NA to missing
-tab1		r_lvstck_own r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_health r_lvstck_health_medical r_lvstck_nutr_producefeed r_lvstck_nutr_fodder //total instead of each livestock separately
-pwcorr		r_lvstck_own r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_health r_lvstck_health_medical r_lvstck_nutr_producefeed r_lvstck_nutr_fodder, st(0.5)
-			//r_own_livestock zero variance for most of variables (skip-logic), so remove
-factor		r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_health r_lvstck_health_medical r_lvstck_nutr_producefeed r_lvstck_nutr_fodder, pf mine(1)
-			//1x eigen value >1
-rotate,		promax blanks (0.3)
-			//r_lvstck_health below 0.3
-factor		r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_health_medical r_lvstck_nutr_producefeed r_lvstck_nutr_fodder, pf mine(1)
-rotate,		promax blanks (0.3)			
-			//all >=0.4065
-alpha		r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_health_medical r_lvstck_nutr_producefeed r_lvstck_nutr_fodder, gen(r_lvstck_mean)
-predict		r_lvstck_pr			
-*/
-
-*livestock situation new
+*Livestock situation new
 *total number of different types of livestock owned and sold at the market
 *r_lvstck_div_total r_lvstck_div_sell_total
 *set to 0 if no livestock (also for fodder items 0 if no livestock)
 foreach v in r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder{ 
 replace `v'=0 if r_lvstck_own==0
 } 
+*
+recode r_lvstck_nutr_producefeed r_lvstck_nutr_fodder (77=0)	//NA to zero
 
+*list of items that need min-max rescaling:
+*r_lvstck_nutr_producefeed r_lvstck_nutr_fodder
+rename		r_lvstck_nutr_producefeed  r_lvstck_nutr_producefeed_old
+rename		r_lvstck_nutr_fodder r_lvstck_nutr_fodder_old
 
-*Household resilience
-/*
-list of items that need min-max rescaling: 
+gen			r_lvstck_nutr_producefeed	=	((5-1)/(4-0))	*	(r_lvstck_nutr_producefeed_old	-	4)	+	5
+gen			r_lvstck_nutr_fodder		=	((5-1)/(4-0))	*	(r_lvstck_nutr_fodder_old	-	4)	+	5
 
-///////////household resilience///////////
-r_res_food_mean					(1-3)  
+lab var 	r_lvstck_nutr_producefeed	"rescaled 1-5: Do you produce enough feed for your livestock"
+lab var 	r_lvstck_nutr_fodder		"rescaled 1-5: Are fodder resources available"
 
-*/
-rename r_res_food_mean r_res_food_mean_old
+order		r_lvstck_nutr_producefeed, before(r_lvstck_nutr_producefeed_old)
+order		r_lvstck_nutr_fodder, before(r_lvstck_nutr_fodder_old)
 
-gen	r_res_food_mean				=	((5-1)/(3-1))	*	(	r_res_food_mean_old				-	3)		+	5
-
-lab var	r_res_food_mean				"rescaled 1-5:	 Mean of food situation over past 12 months "
-
-order	r_res_food_mean	, 			before(	r_res_food_mean_old				)
-
-
-
-
+*Household resilience:
+*list of items that need min-max rescaling: 
+*r_res_food_mean					(1-3)
+rename 		r_res_food_mean 		r_res_food_mean_old
+gen			r_res_food_mean			=	((5-1)/(3-1))	*	(r_res_food_mean_old	-	3)	+	5
+lab var		r_res_food_mean			"rescaled 1-5:	 Mean of food situation over past 12 months "
+order		r_res_food_mean	, 		before(	r_res_food_mean_old		)
 
 tab1 		r_res_food_mean r_res_food_health_hh r_res_skills_farm_mngmt r_res_skills_access r_res_skills_problem r_res_org_planningtasks r_res_org_decic_farminput r_res_org_decic_croptype
 pwcorr		r_res_food_mean r_res_food_health_hh r_res_skills_farm_mngmt r_res_skills_access r_res_skills_problem r_res_org_planningtasks r_res_org_decic_farminput r_res_org_decic_croptype, st(0.5)
@@ -315,7 +265,7 @@ factor		r_res_food_mean r_res_food_health_hh r_res_skills_farm_mngmt r_res_skill
 rotate,		promax blanks (0.3)
 			//all >0.45, so ok
 alpha		r_res_food_mean r_res_food_health_hh r_res_skills_farm_mngmt r_res_skills_access r_res_skills_problem r_res_org_planningtasks r_res_org_decic_farminput r_res_org_decic_croptype, gen(r_res_mean)
-			//scale reliability: 0.8522
+			//scale reliability: 0.8554
 predict		r_res_pr
 
 *Coping ability
@@ -334,69 +284,68 @@ alpha		r_cop_strategy_changecope r_cop_strategy_abilitycope r_cop_assets_managef
 			//scale reliability 0.7679
 predict		r_cop_pr
 
-
-
 //////////////////////////////////////
 *Sub constructs to pillar COMPONENT ANALYSES
 //////////////////////////////////////
-/*items: 
+
+/*Items: 
+income diversity:
+	none
 crop diversity:
-r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total 
+	r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total 
 livestock situation:
-r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder
+	r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder
 household resilience:
-r_res_mean
-Coping ability:
-r_cop_mean
+	r_res_mean
+coping ability:
+	r_cop_mean */
 
-*/
 tab1 	r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean
-
 pca		r_crop_ann_cult_total r_crop_per_cult_total  r_crop_per_sell_total r_crop_ann_sell_total r_lvstck_div_total r_lvstck_div_sell_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean, blanks(.3)
 *meh...
 rotate,		promax blanks (0.3)
-
 
 *try with total number of different crops grown and sold
 gen 	r_crop_cult_total	=	r_crop_ann_cult_total + r_crop_per_cult_total
 gen 	r_crop_sell_total 	= 	r_crop_ann_sell_total + r_crop_per_sell_total
 gen 	r_lvstck_total		=	r_lvstck_div_total + r_lvstck_div_sell_total
 pca		r_crop_cult_total r_crop_sell_total r_lvstck_total r_lvstck_nutr_producefeed r_lvstck_nutr_fodder r_res_mean r_cop_mean, components(3)  blanks(.3)
-loadingplot, comp(3) combined
+//loadingplot, comp(3) combined
 
 rotate,		promax blanks (0.3)
-loadingplot, comp(3) combined
+//loadingplot, comp(3) combined
 predict	resilience_pr1 resilience_pr2 resilience_pr3 
 
 gen resilience_pr=resilience_pr1 + resilience_pr2 + resilience_pr3
-
+alpha resilience_pr1 resilience_pr2 resilience_pr3, gen(resilience_mean)
+sum resilience_pr
 
 *rescale to 0-100
-gen resilience_score=(100-0)/ (13.01026 - -5.868702)*(resilience_pr - 13.01026)+100
-lab var resilience_pr1 "pr. Scores for comp1 - crop diversity-"
-lab var resilience_pr2 "pr Scores for comp2 - hh-resilience & coping ability-"
-lab var resilience_pr3 "pr. Scores for comp3 - livestock situation -"
-lab var	resilience_pr "pr. Scores for resilience (mean 3 resilience components)"
-lab var resilience_score "resilience score rescaled(0-100)"
+//V(new)=	((Max(new)-Min(new))/(Max(old)-Min(old))*(Value(old)-Max(old)) + Max(new)
+gen resilience_score=(100-0) / (8.900831 - -7.867002)*(resilience_pr - 8.900831)+100
+lab var resilience_pr1 	"pr. Scores for comp1 - crop diversity-"
+lab var resilience_pr2 	"pr. Scores for comp2 - hh-resilience & coping ability-"
+lab var resilience_pr3 	"pr. Scores for comp3 - livestock situation -"
+lab var	resilience_pr 	"pr. Scores for resilience (mean 3 resilience components)"
+lab var resilience_score "Resilience score rescaled(0-100)"
 
-
-//////////////////////////////////////
-*Sub constructs to pillar OLD
-//////////////////////////////////////
-
-/*tab1 		r_inc_farm_mean r_inc_change_mean r_crop_mean r_lvstck_mean r_res_mean r_cop_mean
-pwcorr		r_inc_farm_mean r_inc_change_mean r_crop_mean r_lvstck_mean r_res_mean r_cop_mean, st(0.5)
-factor		r_inc_farm_mean r_inc_change_mean r_crop_mean r_lvstck_mean r_res_mean r_cop_mean, pf mine(1)
-			//1x eigenvalue >1
-rotate,		promax blanks (0.3)
-			//all >0.3
-alpha		r_inc_farm_mean r_inc_change_mean r_crop_mean r_lvstck_mean r_res_mean r_cop_mean, gen(resilience_mean)
-predict		resilience_pr
-*/	
-
-//update
-
-
+*Label recoded outcome variables (1-5)
+lab def count27				0 "0" 27 "27"
+lab def count16				0 "0" 16 "16"
+lab def count12				0 "0" 12 "12"
+lab def producefeed			1 "Low production of feed" 5 "High production of feed"
+lab def fodder 				1 "Low level of fodder" 5 "High level of fodder"
+lab def hhresilience		1 "Low household resilience" 5 "High household resilience"
+lab def coping 				1 "Low coping ability" 5 "High coping ability"
+lab def resilience			0 "Low resilience" 100 "High resilience"
+lab val r_crop_cult_total 			count27
+lab val r_crop_sell_total  			count16
+lab val r_lvstck_total  			count12
+lab val r_lvstck_nutr_producefeed 	producefeed
+lab val r_lvstck_nutr_fodder 		fodder
+lab val r_res_mean 					hhresilience
+lab val r_cop_mean 					coping
+lab val resilience_score			resilience
 
 
 *********************************************************************
@@ -407,9 +356,48 @@ predict		resilience_pr
 *Items to sub construct
 //////////////////////////////////////
 
+/*list of items that need rescaling: 
+awareness
+s_awa_soilqual_changewhy  (1-4)
+s_awa_veg_changewhy (1-4)
+s_awa_bio_protectimp (1-3)
+
+use of commons
+s_comm_trees_howuse (1-4)
+s_comm_water_howconserve  (1-4)
+s_comm_water_sourceimp (1-4)
+s_comm_land_howuse (1-4)
+s_comm_land_howconserve (1-4)
+
+land management
+s_land_agro_whyhow (1-7)
+*/
+
+//IDK to missing
+recode s_awa_soilqual_change s_awa_veg_change s_awa_water_change (88=.)
+//NA to missing
+recode s_comm_trees_howuse s_comm_water_howconserve s_comm_water_sourceimp s_comm_land_howuse s_comm_land_howconserve (77=.)
+
+rename 	s_awa_bio_protectimp s_awa_bio_protectimp_old
+gen 	s_awa_bio_protectimp = ((5-1)/(3-1))	*	(s_awa_bio_protectimp_old	-	3)	+	5
+lab var s_awa_bio_protectimp "rescaled 1-5: Important to protect the environment?"
+order 	s_awa_bio_protectimp, before(s_awa_bio_protectimp_old)
+*
+rename 	s_land_agro_whyhow s_land_agro_whyhow_old
+gen 	s_land_agro_whyhow = ((5-1)/(7-1))	*	(s_land_agro_whyhow_old	-	7)	+	5
+lab var s_land_agro_whyhow "rescaled 1-5: s_land_agro_whyhow"
+order 	s_land_agro_whyhow, before(s_land_agro_whyhow_old)
+*
+foreach x in s_awa_soilqual_changewhy s_awa_veg_changewhy s_comm_trees_howuse s_comm_water_howconserve s_comm_water_sourceimp s_comm_land_howuse s_comm_land_howconserve{
+rename 	`x' `x'_old
+gen		`x' = ((5-1)/(4-1))	*	(`x'_old	-	4)	+	5
+lab var	`x'	"rescaled 1-5: `x'"
+order	`x', before(`x'_old)
+}
+*
+
 *Awareness
 tab1		s_awa_soilqual_change s_awa_soilqual_changewhy s_awa_veg_change s_awa_veg_changewhy s_awa_water_change s_awa_water_changewhy s_awa_coll_action s_awa_bio_protectimp s_awa_bio_natureimp_ex
-recode 		s_awa_soilqual_change s_awa_veg_change s_awa_water_change (88=.)	//IDK to missing
 pwcorr		s_awa_soilqual_change s_awa_soilqual_changewhy s_awa_veg_change s_awa_veg_changewhy s_awa_water_change s_awa_water_changewhy s_awa_coll_action s_awa_bio_protectimp s_awa_bio_natureimp_ex, st(0.5)
 			//mostly significant
 factor		s_awa_soilqual_change s_awa_soilqual_changewhy s_awa_veg_change s_awa_veg_changewhy s_awa_water_change s_awa_water_changewhy s_awa_coll_action s_awa_bio_protectimp s_awa_bio_natureimp_ex, pf mine(1)
@@ -424,55 +412,11 @@ factor		s_awa_soilqual_changewhy s_awa_veg_changewhy s_awa_water_changewhy s_awa
 rotate,		promax blanks (0.3)			
 			//all >0.3, ok
 alpha 		s_awa_soilqual_changewhy s_awa_veg_changewhy s_awa_water_changewhy s_awa_coll_action s_awa_bio_natureimp_ex, gen(s_awa_mean)
-			//scale realiability= 0.8028
+			//scale realiability= 0.8097
 predict		s_awa_pr
 
-*Land management
-tab1		s_land_physpract_contourlines s_land_physpract_conttrack s_land_physpract_stonebunds s_land_physpract_gullycontrol s_land_physpract_total s_land_physpract_whyhow s_land_agro_change s_land_agro_whyhow s_land_mngmtpract_ploughing s_land_mngmtpract_staggering s_land_mngmtpract_mulching s_land_mngmtpract_covercrops s_land_mngmtpract_total s_land_mngmtpract_whyhow
-pwcorr		s_land_physpract_contourlines s_land_physpract_conttrack s_land_physpract_stonebunds s_land_physpract_gullycontrol s_land_physpract_whyhow s_land_agro_change s_land_agro_whyhow s_land_mngmtpract_ploughing s_land_mngmtpract_staggering s_land_mngmtpract_mulching s_land_mngmtpract_covercrops s_land_mngmtpract_whyhow, st(0.5)
-factor		s_land_physpract_contourlines s_land_physpract_conttrack s_land_physpract_stonebunds s_land_physpract_gullycontrol s_land_physpract_whyhow s_land_agro_change s_land_agro_whyhow s_land_mngmtpract_ploughing s_land_mngmtpract_staggering s_land_mngmtpract_mulching s_land_mngmtpract_covercrops s_land_mngmtpract_whyhow, pf mine(1)
-			//1 factor, but s_land_physpract_* all <0.3, and most of s_land_mngmtprac_* as well. Let's try with total nr of practices instead.
-tab1		s_land_physpract_total s_land_physpract_whyhow s_land_agro_change s_land_agro_whyhow s_land_mngmtpract_total s_land_mngmtpract_whyhow //total nr of practices instead
-pwcorr		s_land_physpract_total s_land_physpract_whyhow s_land_agro_change s_land_agro_whyhow s_land_mngmtpract_total s_land_mngmtpract_whyhow, st(0.5)
-			//considerable + significant
-factor		s_land_physpract_total s_land_physpract_whyhow s_land_agro_change s_land_agro_whyhow s_land_mngmtpract_total s_land_mngmtpract_whyhow, pf mine(1)
-			//1x eigenvalue>1
-rotate,		promax blanks (0.3)
-			//all above 0.3
-alpha		s_land_physpract_total s_land_physpract_whyhow s_land_agro_change s_land_agro_whyhow s_land_mngmtpract_total s_land_mngmtpract_whyhow, gen(s_land_mean)
-predict		s_land_pr
-
-
-
-
-
-
-*Farm management
-tab1		s_farm_crop_rotation s_farm_crop_rotationwhy s_farm_crop_mixwhy s_farm_soil_practcompost s_farm_soil_practmanure s_farm_soil_practchemfert s_farm_soil_practcomp_chem s_farm_soil_practmanure_chem s_farm_soil_practtotal s_farm_soil_practwhyhow s_farm_soil_nofert_expensive s_farm_soil_nofert_notavail s_farm_soil_nofert_dontneed s_farm_soil_nofert_other s_farm_soil_chemfert_buygroup s_farm_soil_chemfert_buygroup_nr s_farm_lvstck_intgr s_farm_lvstck_plans
-			//skip-logic for s_farm_soil_nofert*; don't include
-			//skip-logic s_farm_soil_chemfert_buygroup_nr; don't include
-			//s_farm_soil_chemfert_buygroup also not included (Q not meant to measure farm mangement)
-tab1		s_farm_crop_rotation s_farm_crop_rotationwhy s_farm_crop_mixwhy s_farm_soil_practcompost s_farm_soil_practmanure s_farm_soil_practchemfert s_farm_soil_practcomp_chem s_farm_soil_practmanure_chem s_farm_soil_practwhyhow 
-pwcorr		s_farm_crop_rotation s_farm_crop_rotationwhy s_farm_crop_mixwhy s_farm_soil_practcompost s_farm_soil_practmanure s_farm_soil_practchemfert s_farm_soil_practcomp_chem s_farm_soil_practmanure_chem s_farm_soil_practwhyhow , st(0.5)
-			//mixed; negative corr between some about fertilizer type (which makes sense)
-factor		s_farm_crop_rotation s_farm_crop_rotationwhy s_farm_crop_mixwhy s_farm_soil_practcompost s_farm_soil_practmanure s_farm_soil_practchemfert s_farm_soil_practcomp_chem s_farm_soil_practmanure_chem s_farm_soil_practwhyhow , pf mine(1)
-			//1x eigen value >1
-rotate,		promax blanks(0.3)			
-			//s_farm_soil_practchemfert <0.3, drop
-factor		s_farm_crop_rotation s_farm_crop_rotationwhy s_farm_crop_mixwhy s_farm_soil_practcompost s_farm_soil_practmanure s_farm_soil_practcomp_chem s_farm_soil_practmanure_chem s_farm_soil_practwhyhow , pf mine(1)
-rotate,		promax blanks(0.3)				
-alpha		s_farm_crop_rotation s_farm_crop_rotationwhy s_farm_crop_mixwhy s_farm_soil_practcompost s_farm_soil_practmanure s_farm_soil_practcomp_chem s_farm_soil_practmanure_chem s_farm_soil_practwhyhow , gen(s_farm_mean)
-			//scale reliability: 0.7284
-predict		s_farm_pr
-
-//check with Rik
-
-
-
-	
 *Use of the commons
 tab1		s_comm_trees_importance s_comm_trees_howuse s_comm_water_howconserve s_comm_water_sourceimp s_comm_land_howuse s_comm_land_howconserve
-recode		s_comm_trees_howuse s_comm_water_howconserve s_comm_water_sourceimp s_comm_land_howuse s_comm_land_howconserve (77=.) //NA to missing
 pwcorr		s_comm_trees_importance s_comm_trees_howuse s_comm_water_howconserve s_comm_water_sourceimp s_comm_land_howuse s_comm_land_howconserve, st(0.5)
 			//all significant >0.15
 factor		s_comm_trees_importance s_comm_trees_howuse s_comm_water_howconserve s_comm_water_sourceimp s_comm_land_howuse s_comm_land_howconserve, pf mine(1)
@@ -480,29 +424,167 @@ factor		s_comm_trees_importance s_comm_trees_howuse s_comm_water_howconserve s_c
 rotate,		promax blanks (0.3)
 			//all above 0.3
 alpha		s_comm_trees_importance s_comm_trees_howuse s_comm_water_howconserve s_comm_water_sourceimp s_comm_land_howuse s_comm_land_howconserve, gen(s_comm_mean)
-			//scale reliability= 0.7488
+			//scale reliability= 0.7760
 predict		s_comm_pr
+
+*Farm management
+gen 		s_farm_soil_compost=0
+replace 	s_farm_soil_compost=1 if s_farm_soil_practcompost==1 | s_farm_soil_practcomp_chem==1
+gen 		s_farm_soil_manure=0
+replace 	s_farm_soil_manure=1 if s_farm_soil_practmanure==1 | s_farm_soil_practmanure_chem==1
+gen 		s_farm_soil_chemical=0
+replace 	s_farm_soil_chemical=1 if s_farm_soil_practchemfert==1 | s_farm_soil_practcomp_chem==1 | s_farm_soil_practmanure_chem==1
+
+lab val 	s_farm_soil_compost s_farm_soil_manure s_farm_soil_chemical binary
+order 		s_farm_soil_compost, before(s_farm_soil_practcompost)
+order 		s_farm_soil_manure, after(s_farm_soil_compost)
+order 		s_farm_soil_chemical, after(s_farm_soil_manure)
+
+lab var 	s_farm_soil_compost "respondent uses compost"
+lab var 	s_farm_soil_manure "respondent uses manure"
+lab var 	s_farm_soil_chemical "respondent uses chemical fertilizer"
+tab1 		s_farm_soil_compost s_farm_soil_manure s_farm_soil_chemical
+
+//awareness: s_farm_crop_rotationwhy s_farm_crop_mixwhy s_farm_soil_practwhyhow
+tab1		s_farm_crop_rotationwhy s_farm_crop_mixwhy s_farm_soil_practwhyhow
+pwcorr		s_farm_crop_rotationwhy s_farm_crop_mixwhy s_farm_soil_practwhyhow, st(0.5)
+factor		s_farm_crop_rotationwhy s_farm_crop_mixwhy s_farm_soil_practwhyhow, pf mine(1)
+rotate,		promax blanks(0.3)
+alpha		s_farm_crop_rotationwhy s_farm_crop_mixwhy s_farm_soil_practwhyhow, gen(s_farm_why_mean)
+predict		s_farm_why_pr
+
+//operational: s_farm_crop_rotation s_farm_soil_compost s_farm_soil_manure s_farm_soil_chemical
+tab1		s_farm_crop_rotation s_farm_soil_compost s_farm_soil_manure s_farm_soil_chemical
+pwcorr		s_farm_crop_rotation s_farm_soil_compost s_farm_soil_manure s_farm_soil_chemical, st(0.5)
+egen 		s_farm_pract_totnr=rowtotal(s_farm_soil_practcompost s_farm_soil_practmanure s_farm_soil_practchemfert)
+order		s_farm_pract_totnr, before(s_farm_soil_practcompost)
+
+*Land management
+//awareness: s_land_physpract_whyhow s_land_agro_whyhow s_land_mngmtpract_whyhow
+tab1		s_land_physpract_whyhow s_land_agro_whyhow s_land_mngmtpract_whyhow
+pwcorr		s_land_physpract_whyhow s_land_agro_whyhow s_land_mngmtpract_whyhow, st(0.5)
+factor		s_land_physpract_whyhow s_land_agro_whyhow s_land_mngmtpract_whyhow, pf mine(1)
+rotate,		promax blanks(0.3)
+alpha		s_land_physpract_whyhow s_land_agro_whyhow s_land_mngmtpract_whyhow, gen(s_land_why_mean)
+predict		s_land_why_pr
+
+//operational: s_land_physpract_contourlines s_land_physpract_conttrack s_land_physpract_stonebunds s_land_physpract_gullycontrol s_land_mngmtpract_ploughing s_land_mngmtpract_staggering s_land_mngmtpract_mulching s_land_mngmtpract_covercrops
+tab1 		s_land_physpract_contourlines s_land_physpract_conttrack s_land_physpract_stonebunds s_land_physpract_gullycontrol s_land_mngmtpract_ploughing s_land_mngmtpract_staggering s_land_mngmtpract_mulching s_land_mngmtpract_covercrops
+pwcorr		s_land_physpract_contourlines s_land_physpract_conttrack s_land_physpract_stonebunds s_land_physpract_gullycontrol s_land_mngmtpract_ploughing s_land_mngmtpract_staggering s_land_mngmtpract_mulching s_land_mngmtpract_covercrops, st(0.5)
+			//s_land_physpract_gullycontrol; only 18 respondents = yes; drop
+			//s_land_physpract_stonebunds; only 43 respondents = yes; drop	
+			//s_land_mngmtpract_staggering; only 82 respondents = yes; drop
+			//also: previous analysis shows that these low freq. practices end up in a separate component. So additional rational for excluding them.
+egen 		s_land_pract_total=rowtotal(s_land_physpract_total s_land_mngmtpract_total)
 
 //////////////////////////////////////
 *Sub constructs to pillar
 //////////////////////////////////////
 
-tab1 		s_awa_mean s_land_mean s_farm_mean s_comm_mean
-pwcorr		s_awa_mean s_land_mean s_farm_mean s_comm_mean, st(0.5)
-			//all positive and signifciant, and considerable
-factor		s_awa_mean s_land_mean s_farm_mean s_comm_mean, pf mine(1)
-			//1x eigenvalue >1
-rotate,		promax blanks (0.3)
-			//all above 0.3
-alpha		s_awa_mean s_land_mean s_farm_mean s_comm_mean, gen(stewardship_mean)
-			//scale reliability: 0.8688
-*predict		stewardship_pr*
+*practices included as dummies
+pca			s_awa_mean s_comm_mean s_farm_why_mean s_land_why_mean /*
+*/			s_farm_crop_rotation s_farm_soil_compost s_farm_soil_manure s_farm_soil_chemical /*
+*/			s_land_physpract_contourlines s_land_physpract_conttrack /*
+*/			s_land_mngmtpract_ploughing s_land_mngmtpract_mulching s_land_mngmtpract_covercrops /*
+*/			, blanks(.3) mine(1)
+rotate		,promax blanks(0.3)
+			//s_farm_crop_rotation and s_farm_soil_chemical below 0.3, drop
+pca			s_awa_mean s_comm_mean s_farm_why_mean s_land_why_mean /*
+*/			s_farm_soil_compost s_farm_soil_manure /*
+*/			s_land_physpract_contourlines s_land_physpract_conttrack /*
+*/			s_land_mngmtpract_ploughing s_land_mngmtpract_mulching s_land_mngmtpract_covercrops /*
+*/			, blanks(.3) mine(1) 
+rotate		,promax  blanks(0.3)
+			//all above 0.3, ok. 4 components in total
+predict		stewardship_pr1	stewardship_pr2 stewardship_pr3 stewardship_pr4 
+gen			stewardship_pr= stewardship_pr1 + stewardship_pr2 + stewardship_pr3 + stewardship_pr4
+alpha		stewardship_pr1	stewardship_pr2 stewardship_pr3 stewardship_pr4, gen(stewardship_mean)
+			//alpha= 0.1719
+			
+*rescale to 0-100
+//V(new)=	((Max(new)-Min(new))/(Max(old)-Min(old))*(Value(old)-Max(old)) + Max(new)
+sum 		stewardship_pr
+gen stewardship_score=(100-0) / (8.480449 - -7.866103)*(stewardship_pr - 8.480449)+100
+lab var stewardship_pr1 	"pr. Scores for comp1 - s_awa_mean s_comm_mean s_farm_why_mean s_land_why_mean"
+lab var stewardship_pr2 	"pr. Scores for comp2 - s_land_physpract_contourlines s_land_physpract_conttrack"
+lab var stewardship_pr3 	"pr. Scores for comp3 - s_farm_soil_compost s_farm_soil_manure"
+lab var stewardship_pr4 	"pr. Scores for comp4 - s_land_mngmtpract_ploughing s_land_mngmtpract_mulching s_land_mngmtpract_covercrops"
+lab var	stewardship_pr 	"pr. Scores for stewardship (mean 4 stewardship components)"
+lab var stewardship_score "Stewardship score rescaled(0-100)"
+			
+/*total nr of practices (1)
+pca			s_awa_mean s_comm_mean s_farm_why_mean s_land_why_mean /*
+*/ s_farm_crop_rotation s_farm_pract_totnr s_land_physpract_total s_land_mngmtpract_total , blanks(.3) mine(1)
+rotate		,promax blanks(0.3)
+			//s_land_physpract_total s_farm_pract_totnr below 0.3
+*total nr of practices (2)
+pca			s_awa_mean s_comm_mean s_farm_why_mean s_land_why_mean /*
+*/ s_farm_crop_rotation s_farm_pract_totnr s_land_pract_total , blanks(.3) mine(1)
+rotate		,promax blanks(0.3)			
+			//s_farm_pract_totnr below 0.3
+*total nr of practices (3)
+pca			s_awa_mean s_comm_mean s_farm_why_mean s_land_why_mean /*
+*/ s_farm_crop_rotation s_land_pract_total , blanks(.3) mine(1)
+rotate		,promax blanks(0.3)		
+			//all above 0.3, ok.
+			
+*total dummies farm mngmt + total nr of practices
+pca			s_awa_mean s_comm_mean s_farm_why_mean s_land_why_mean /*
+*/			s_farm_crop_rotation s_farm_soil_compost s_farm_soil_manure s_farm_soil_chemical /*
+*/			s_land_physpract_total s_land_mngmtpract_total, blanks(.3) mine(1)
+rotate		,promax blanks(0.3)
+			//s_farm_crop_rotation below 0.3
+pca			s_awa_mean s_comm_mean s_farm_why_mean s_land_why_mean /*
+*/			s_farm_soil_compost s_farm_soil_manure s_farm_soil_chemical /*
+*/			s_land_physpract_total s_land_mngmtpract_total, blanks(.3) mine(1)
+rotate		,promax blanks(0.3)
+			//s_land_physpract_total s_farm_soil_chemical below 0.3
+pca			s_awa_mean s_comm_mean s_farm_why_mean s_land_why_mean /*
+*/			s_farm_soil_compost s_farm_soil_manure /*
+*/			s_land_mngmtpract_total, blanks(.3) mine(1)
+rotate		,promax blanks(0.3)	
+			//ok now, but probably better to work with only dummies, or only totals.
+			//also a lot of variables dropped in this case.*/
 
-*********************************************************************
-*Other
-*********************************************************************
+*new pillar (components *-1)
+gen	stewardship_pr2_reversed= stewardship_pr2*-1
+gen stewardship_pr3_reversed= stewardship_pr3*-1
+gen stewardship_pr4_reversed= stewardship_pr4*-1
 
-*drop *_pr	//becuase not sure yet what to do with it
+gen			stewardship_pr_v2=stewardship_pr1 + stewardship_pr2_reversed + stewardship_pr3_reversed + stewardship_pr4_reversed
+alpha		stewardship_pr1 stewardship_pr2_reversed stewardship_pr3_reversed stewardship_pr4_reversed, gen(stewardship_mean_v2)
+
+sum			stewardship_pr_v2
+gen stewardship_score_v2=(100-0) / (5.693706 - -11.60987)*(stewardship_pr_v2 - 5.693706)+100
+
+mean stewardship_score, over(educ_cat)
+mean stewardship_score_v2, over(educ_cat)
+
+pwcorr stewardship_pr3 educ_cat, st(0.5)
+pwcorr stewardship_pr3_reversed educ_cat, st(0.5)
+
+pwcorr stewardship_pr1 stewardship_pr3, st(0.5)
+pwcorr stewardship_pr1 stewardship_pr3_reversed, st(0.5)
+
+lab var stewardship_pr2_reversed 	"pr. Scores for comp2; reversed - s_land_physpract_contourlines s_land_physpract_conttrack"
+lab var stewardship_pr3_reversed 	"pr. Scores for comp3; reversed - s_farm_soil_compost s_farm_soil_manure"
+lab var stewardship_pr4_reversed 	"pr. Scores for comp4; reversed - s_land_mngmtpract_ploughing s_land_mngmtpract_mulching s_land_mngmtpract_covercrops"
+lab var	stewardship_pr_v2 	"pr. Scores for stewardship; reversed (mean 4 stewardship components)"
+lab var stewardship_score_v2 "Stewardship score rescaled(0-100)"
+
+/*We decided to continue with stewardship_score_v2 as the correlations with attitudes on stewardship,
+and the correlations with education make more sense (positive instead of negative).*/
+
+lab def awareness			1 "Low awareness" 5 "High awareness"
+lab def commons 			1 "Low level of conserving" 5 "High level of conserving"
+lab def stewardship			1 "Low stewardship" 5 "High stewardship"
+lab def st_score			0 "Low stewardship" 100 "High stewardship"
+lab val s_awa_mean 					awareness
+lab val s_comm_mean 				commons
+lab val s_farm_why_mean 			awareness
+lab val s_land_why_mean 			awareness
+lab val s_farm_soil_compost s_farm_soil_manure s_land_physpract_contourlines s_land_physpract_conttrack s_land_mngmtpract_ploughing s_land_mngmtpract_mulching s_land_mngmtpract_covercrops binary
+lab val stewardship_score_v2		st_score
 
 
 *********************************************************************
@@ -513,3 +595,20 @@ cd "C:\Users\mariekeme\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07
 save "PAPAB Impact study - Analysis2 Incl Factors.dta", replace
 export delimited using "PAPAB Impact study - Analysis2 Incl Factors.csv", replace
 
+/*********************************************************************
+*Export label overview
+*********************************************************************
+
+cd "C:\Users\mariekeme\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\4. Output"
+numlabel, add force
+
+*Export variable name + variable label
+preserve
+    describe *, replace clear
+    list
+    export excel using VariableLabels_PAPAB.xlsx, replace first(var)
+restore
+
+*Export value labels
+uselabel, clear
+export excel lname value label using "ValueLabels_PAPAB", sheetreplace
