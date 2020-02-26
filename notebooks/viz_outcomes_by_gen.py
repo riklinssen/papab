@@ -98,4 +98,16 @@ plotlabels=pd.merge(left=varlabs, right=vallabelset, left_on=['vallab'], right_o
 
 
 plotlabels_figs=plotlabels.loc[plotlabels.name.isin(results.name)]
-plotlabels_figs.rename(colu)='resultvar'
+plotlabels_figs.rename(columns={'name':'resultvar'}, inplace=True )
+
+plotlabels_f_dict=plotlabels_figs.set_index('resultvar').to_dict(orient='index')
+
+
+
+###############
+#errorsbar
+results['err']=results['lb']-results['mean']
+
+avg=results.loc[results.group.isin(['PIP'+ str(i) for i in range(1,5)])]
+dif=results.loc[results.group =='Difference']
+
