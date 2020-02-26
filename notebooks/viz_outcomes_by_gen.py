@@ -44,10 +44,10 @@ for f in csvfiles:
     .rename(columns=str.lower)
     .assign(category_nr=lambda x: name) # add generations
     .assign(generation=lambda x: x['category_nr'].map({
-         'pip1': 'G1', 
-         'pip2': 'G2',
-         'pip3': 'G3',
-         'pip4': 'G4',
+         'pip1': 'G 1', 
+         'pip2': 'G 2',
+         'pip3': 'G 3',
+         'pip4': 'G 4',
          'pip_': "All PIP* \n (average)"
          })) 
          #add pillar
@@ -106,8 +106,29 @@ plotlabels_f_dict=plotlabels_figs.set_index('resultvar').to_dict(orient='index')
 
 ###############
 #errorsbar
-results['err']=results['lb']-results['mean']
+results['err']=results['ub']-results['mean']
+#colors
+cmapgens = {'G 1': '#0B9CDA',
+            'G 2': '#53297D',
+            'G 3': '#630235',
+            'G 4': '#E43989',
+            'Comparison \n group': '#F16E22',
+            'All PIP* \n (average)': '#61A534'}
 
-avg=results.loc[results.group.isin(['PIP'+ str(i) for i in range(1,5)])]
+results['color']= results.generation.map(cmapgens)
+
+#scales and percentages
+
+results['ispercentage']=results['name'].isin(plotlabels_figs.loc[plotlabels_figs.vallab=='binary','resultvar'])
+results.rename(columns={'name':'resultvar'}, inplace=True )
+avg=results.loc[results.group.isin(['PIP'+ str(i) for i in range(1,5)])]#  or 'PIP_allpip')] leave out the allpip
 dif=results.loc[results.group =='Difference']
+
+#greyed out for non-significant differences 
+dif['color']=np.where(dif.pvalue > 0.05, '#d3d3d3',dif['color'])
+
+avg=avg.set_index(['resultvar', 'generation', ]).sort_index()
+dif=dif.set_index(['resultvar', 'generation', ]).sort_index()
+
+
 
