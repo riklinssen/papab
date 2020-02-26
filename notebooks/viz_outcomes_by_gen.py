@@ -1,0 +1,101 @@
+import datetime
+import glob
+import os
+import re
+from pathlib import Path
+
+import matplotlib.cm
+import matplotlib.dates as mdates
+import matplotlib.gridspec as gridspec
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from matplotlib.dates import DateFormatter
+from statsmodels.stats.weightstats import DescrStatsW
+
+#paths
+root=Path.cwd()
+interim=root/"data"/"interim"
+clean=root/"data"/"clean"
+graphs=root/"graphs"
+
+
+
+vallabelfilename=interim/"ValueLabels_PAPAB.xls"
+varlabelfilename=interim/"VariableLabels_PAPAB.xlsx"
+
+
+vallabs=pd.read_excel(vallabelfilename, header=None, names=['labelname', 'value', 'valuelabel'])
+varlabs=pd.read_excel(varlabelfilename, usecols=['name', 'vallab', 'varlab']).dropna(subset=['vallab'])
+
+
+#resultsset
+csvfiles = glob.glob("data\interim\*.csv")
+dflist=[]
+pillars=['motivation', 'stewardship', 'resilience']
+for f in csvfiles: 
+    name=f[13:17] # # pip_ =allpip
+    pillar=[ p for p in pillars if p in f]
+    df=((pd.read_csv(f, sep=';', decimal=',', header=0))
+    .assign(pillar=lambda x: pillar[0])
+    .rename(columns=str.lower)
+    .assign(category_nr=lambda x: name) # add generations
+    .assign(generation=lambda x: x['category_nr'].map({
+         'pip1': 'G1', 
+         'pip2': 'G2',
+         'pip3': 'G3',
+         'pip4': 'G4',
+         'pip_': "All PIP* \n (average)"
+         })) 
+         #add pillar
+
+          )
+    dflist.append(df)
+
+
+results=pd.concat(dflist, ignore_index=True)
+
+
+#rename varlabs or ease referencings later
+varlabs.columns=['name', 'vallab', 'titles']
+
+missingvals=[77,88,99]
+#drop missing values
+vallabs=vallabs.loc[~vallabs.value.isin(missingvals)]
+
+labelnames=vallabs.labelname.unique()
+
+labelset=[]
+#telkens een rij er bij 
+for label in labelnames:
+    #select relevant rows in vallabs df
+    sel=vallabs.loc[vallabs['labelname']==label]
+    #get index of min and max values (in case these are not sorted)
+    low=sel['value'].idxmin()
+    high=sel['value'].idxmax()
+    #then select the value and the label
+    yminv=sel.loc[low,'value']
+    yminl=sel.loc[low,'valuelabel']
+    ymaxv=sel.loc[high, 'value']
+    ymaxl=sel.loc[high,'valuelabel']
+    #add the varname as wel
+    labelset.append([label, yminv, yminl, ymaxv, ymaxl])    
+
+vallabelset=pd.DataFrame(labelset, columns=['vallab', 'yminv', 'yminl', 'ymaxv', 'ymaxl'])
+
+# remove the ymin and ymax values
+for v, l in zip(['yminv', 'ymaxv'],['yminl', 'ymaxl']): 
+    vallabelset[l]=vallabelset[l].str.replace('\d+', '')
+    vallabelset[l]=vallabelset[v].astype(str)+vallabelset[l] 
+
+
+
+
+plotlabels=pd.merge(left=varlabs, right=vallabelset, left_on=['vallab'], right_on=['vallab'] )
+
+
+plotlabels_figs=plotlabels.loc[plotlabels.name.isin(results.name)]
+plotlabels_figs.rename(colu)='resultvar'
