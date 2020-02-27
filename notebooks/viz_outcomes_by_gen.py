@@ -121,7 +121,7 @@ results['color']= results.generation.map(cmapgens)
 
 results['ispercentage']=results['name'].isin(plotlabels_figs.loc[plotlabels_figs.vallab=='binary','resultvar'])
 results.rename(columns={'name':'resultvar'}, inplace=True )
-avg=results.loc[results.group.isin(['PIP'+ str(i) for i in range(1,5)])]#  or 'PIP_allpip')] leave out the allpip
+avg=results.loc[results.group.isin(['PIP'+ str(i) for i in range(1,5)]  + ['PIP_allpip'])] #leave out the allpip
 dif=results.loc[results.group =='Difference']
 
 #greyed out for non-significant differences 
@@ -129,6 +129,46 @@ dif['color']=np.where(dif.pvalue > 0.05, '#d3d3d3',dif['color'])
 
 avg=avg.set_index(['resultvar', 'generation', ]).sort_index()
 dif=dif.set_index(['resultvar', 'generation', ]).sort_index()
+
+
+##motivation plots
+motivation=list(avg.loc[avg.pillar=='motivation'].index.get_level_values('resultvar').unique())
+idx = pd.IndexSlice
+
+fig, axes = plt.subplots(nrows= len(motivation), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1, 1], 'wspace':0.1} , figsize=(4, 7))
+
+axs=fig.axes
+
+  #left hand plots
+for i, var in zip(range(0,len(motivation)*2,2), motivation):
+
+    selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apmean=avg.loc[idx[var, 'All PIP* \n (average)'],:]
+
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:]
+    apdifs=dif.loc[idx[var, 'All PIP* \n (average)'],:]
+
+    #draw out some parameters
+
+    param={}
+    param=plotlabels_f_dict[var]
+
+    #plot left
+    axs[i].set_title(var)
+    axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color, alpha=0.4, edgecolor=selmean.color, linewidth=2,
+    yerr=selmean.err, ecolor=selmean.color)
+    
+       
+        
+
+    # left plot for differences
+
+
+
+
+        
+
+
 
 
 
