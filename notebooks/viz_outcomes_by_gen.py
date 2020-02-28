@@ -585,10 +585,13 @@ for i, var in zip(range(0,len(lvstock)*2,2), lvstock):
     axs[i].set_title(param['pltitle'])
 
     #yaxis
-    axs[i].set_ylim([0,15])
-    axs[i].set_ylabel('Count')
-    #axs[i].yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
-
+    axs[i].set_ylim(param['yminv'], param['ymaxv'])
+    axs[i].set_ylabel(None)
+    axs[i].set_yticks(np.arange(param['yminv'], param['ymaxv']+1, 1))
+    ytick=axs[i].get_yticks().tolist()    
+    ytick[0]=param['yminl']
+    ytick[-1]=param['ymaxl']
+    axs[i].set_yticklabels(ytick, fontsize=8)
 
     #x-axis
     
@@ -627,9 +630,17 @@ for i, var in zip(range(1,len(lvstock)*2,2), lvstock):
     axs[i].yaxis.grid(True)
     axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
     axs[-1].set_xlabel('difference: \n(target-comparison)')
+    
+    
+    #adjustments on 1st axs y for counts
+    axs[0].set_ylim([0,15])
+    axs[0].set_yticks([0,5,10,15])
+    axs[0].set_yticklabels(['0','5','10','15'])
+    axs[0].set_ylabel('Count')
+    
     #title
-    fig.suptitle('Resilience:\Livestock: livestock diversity and availability of fodder\nby generation', x=-0.4, y=1.2, horizontalalignment='left', verticalalignment='top', fontsize = 15)
-    plt.figtext(x=-0.4, y=-0.2, s='Left: % of people that applies practice\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals\nDifferences that are not statistically significant (p<0.05) greyed out', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.suptitle('Resilience:Livestock: livestock diversity and availability of fodder\nby generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=-0.1, s='Left: % of people that applies practice\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals\nDifferences that are not statistically significant (p<0.05) greyed out', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
     fig.subplots_adjust(hspace=0.4) 
     fig.tight_layout()
     plt.savefig(graphs/"lvstock.svg", dpi=300, facecolor='w', bbox_inches='tight')
