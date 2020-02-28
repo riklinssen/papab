@@ -26,7 +26,7 @@ graphs=root/"graphs"
 
 vallabelfilename=interim/"ValueLabels_PAPAB.xls"
 varlabelfilename=interim/"VariableLabels_PAPAB.xlsx"
-
+plottitlefilename=interim/"plottitles.xlsx"
 
 vallabs=pd.read_excel(vallabelfilename, header=None, names=['labelname', 'value', 'valuelabel'])
 varlabs=pd.read_excel(varlabelfilename, usecols=['name', 'vallab', 'varlab']).dropna(subset=['vallab'])
@@ -92,10 +92,14 @@ for v, l in zip(['yminv', 'ymaxv'],['yminl', 'ymaxl']):
     vallabelset[l]=vallabelset[v].astype(str)+vallabelset[l] 
 
 
-
-
 plotlabels=pd.merge(left=varlabs, right=vallabelset, left_on=['vallab'], right_on=['vallab'] )
 
+#plot titles
+plottitles=pd.read_excel(plottitlefilename)
+
+plotlabels=pd.merge(left=plotlabels, right=plottitles, left_on=['name'], right_on=['resultvar'])
+
+plotlabels.drop(columns=['resultvar'], inplace=True)
 
 plotlabels_figs=plotlabels.loc[plotlabels.name.isin(results.name)]
 plotlabels_figs.rename(columns={'name':'resultvar'}, inplace=True )
@@ -131,22 +135,65 @@ avg=avg.set_index(['resultvar', 'generation', ]).sort_index()
 dif=dif.set_index(['resultvar', 'generation', ]).sort_index()
 
 
-##motivation plots
-motivation=list(avg.loc[avg.pillar=='motivation'].index.get_level_values('resultvar').unique())
+
+
+
+def labelscalemid(bars, xpos='center'):
+    """
+    Attach a text label above each bar in *ax*, displaying its height.
+
+    *xpos* indicates which side to place the text w.r.t. the center of
+    the bar. It can be one of the following {'center', 'right', 'left'}.
+    """
+
+    xpos = xpos.lower()  # normalize the case of the parameter
+    ha = {'center': 'center', 'right': 'left', 'left': 'right'}
+    offset = {'center': 0.5, 'right': 0.57, 'left': 0.43}  # x_txt = x + w*off
+
+    for bar in bars:
+        heightp = round(bar.get_height(),1)
+        height=bar.get_height()*0.5
+        axs[i].text(bar.get_x() + bar.get_width()*offset[xpos], height,
+                '{}'.format(heightp), ha=ha[xpos], va='bottom', color='white', alpha=1, size='small')
+
+
+
+
+
+def labelpercmid(bars, xpos='center'):
+    """
+    Attach a text label above each bar in *ax*, displaying its height.
+
+    *xpos* indicates which side to place the text w.r.t. the center of
+    the bar. It can be one of the following {'center', 'right', 'left'}.
+    """
+
+    xpos = xpos.lower()  # normalize the case of the parameter
+    ha = {'center': 'center', 'right': 'left', 'left': 'right'}
+    offset = {'center': 0.5, 'right': 0.57, 'left': 0.43}  # x_txt = x + w*off
+
+    for bar in bars:
+        heightp = format(bar.get_height(), ".0%")
+        height=bar.get_height()*0.5
+        axs[i].text(bar.get_x() + bar.get_width()*offset[xpos], height,
+                '{}'.format(heightp), ha=ha[xpos], va='bottom', color='white', alpha=1, size='small')
+
+
+
+##motivation plots -leave out motivation score
+motivation=list(avg.loc[avg.pillar=='motivation'].index.get_level_values('resultvar').unique())[:-1]
+
 idx = pd.IndexSlice
 
-fig, axes = plt.subplots(nrows= len(motivation), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1, 1], 'wspace':0.1} , figsize=(4, 7))
+fig, axes = plt.subplots(nrows= len(motivation), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10))
 
 axs=fig.axes
 
   #left hand plots
 for i, var in zip(range(0,len(motivation)*2,2), motivation):
-
     selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
     apmean=avg.loc[idx[var, 'All PIP* \n (average)'],:]
 
-    seldif=dif.loc[idx[var, 'G 1':'G 4'],:]
-    apdifs=dif.loc[idx[var, 'All PIP* \n (average)'],:]
 
     #draw out some parameters
 
@@ -154,19 +201,440 @@ for i, var in zip(range(0,len(motivation)*2,2), motivation):
     param=plotlabels_f_dict[var]
 
     #plot left
-    axs[i].set_title(var)
-    axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color, alpha=0.4, edgecolor=selmean.color, linewidth=2,
-    yerr=selmean.err, ecolor=selmean.color)
+    bars=axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color,  linewidth=4,
+    yerr=selmean.err, ecolor='black')
+
+    #labels
+    labelscalemid(bars)
+
+    #titles
+    axs[i].set_title(param['pltitle'])
+
+    #y-axis   
+    axs[i].set_ylim(param['yminv'], param['ymaxv'])
+    axs[i].set_ylabel(None)
+    axs[i].set_yticks(np.arange(param['yminv'], param['ymaxv']+1, 1))
+    ytick=axs[i].get_yticks().tolist()    
+    ytick[0]=param['yminl']
+    ytick[-1]=param['ymaxl']
+    axs[i].set_yticklabels(ytick, fontsize=8)
+
+    #x-axis
     
-       
+
+    #spines
+    axs[i].spines['left'].set_visible(True)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(False)
+    axs[i].spines["left"].set_position(("outward", +5))
+    
         
+    
+    
+    
 
-    # left plot for differences
+    # right plot for differences
+for i, var in zip(range(1,len(motivation)*2,2), motivation):
+    
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apdifs=dif.loc[idx[var, 'All PIP* \n (average)'],:]
+
+    #plot right
+    axs[i].errorbar(y=seldif.index, x=seldif['mean'], xerr=seldif.err, fmt='none', ecolor=seldif.color)
+    axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
+    #x-axis
+    axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    #y-axis
+    axs[i].yaxis.tick_right()
+    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    axs[i].invert_yaxis()
+    #spines
+    axs[i].spines['left'].set_visible(False)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(True)
+    axs[i].spines["right"].set_position(("outward", +5))
+    #grid
+    axs[i].yaxis.grid(True)
+    axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
+    axs[-1].set_xlabel('difference: \n(target-comparison)')
+    #title
+    fig.suptitle('Motivation:\nsubconstructs by generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=0,s='Left: Averages on subconstruct\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.subplots_adjust(hspace=0.4) 
+    fig.tight_layout()
+    plt.savefig(graphs/"motivation.svg", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()
+            
+ 
+
+#####Stewardship --knowledge and use of commons-
 
 
 
 
+
+st_know=['s_awa_mean', 
+'s_farm_why_mean',
+'s_land_why_mean',
+'s_comm_mean']
+
+
+
+
+
+
+idx = pd.IndexSlice
+
+fig, axes = plt.subplots(nrows= len(st_know), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10))
+
+axs=fig.axes
+
+  #left hand plots
+for i, var in zip(range(0,len(st_know)*2,2), st_know):
+    selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apmean=avg.loc[idx[var, 'All PIP* \n (average)'],:]
+
+
+    #draw out some parameters
+
+    param={}
+    param=plotlabels_f_dict[var]
+
+    #plot left
+    bars=axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color,  linewidth=4,
+    yerr=selmean.err, ecolor='black')
+
+    #labels
+    labelscalemid(bars)
+
+    #titles
+    axs[i].set_title(param['pltitle'])
+
+    #y-axis   
+    axs[i].set_ylim(param['yminv'], param['ymaxv'])
+    axs[i].set_ylabel(None)
+    axs[i].set_yticks(np.arange(param['yminv'], param['ymaxv']+1, 1))
+    ytick=axs[i].get_yticks().tolist()    
+    ytick[0]=param['yminl']
+    ytick[-1]=param['ymaxl']
+    axs[i].set_yticklabels(ytick, fontsize=8)
+
+    #x-axis
+    
+
+    #spines
+    axs[i].spines['left'].set_visible(True)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(False)
+    axs[i].spines["left"].set_position(("outward", +5))
+    
         
+    
+    
+    
+
+    # right plot for differences
+for i, var in zip(range(1,len(st_know)*2,2), st_know):
+    
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apdifs=dif.loc[idx[var, 'All PIP* \n (average)'],:]
+
+    #plot right
+    axs[i].errorbar(y=seldif.index, x=seldif['mean'], xerr=seldif.err, fmt='none', ecolor=seldif.color)
+    axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
+    #x-axis
+    axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    #y-axis
+    axs[i].yaxis.tick_right()
+    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    axs[i].invert_yaxis()
+    #spines
+    axs[i].spines['left'].set_visible(False)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(True)
+    axs[i].spines["right"].set_position(("outward", +5))
+    #grid
+    axs[i].yaxis.grid(True)
+    axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
+    axs[-1].set_xlabel('difference: \n(target-comparison)')
+    #title
+    fig.suptitle('Stewardship: knowledge and use of commons\nsubconstructs by generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=0,s='Left: Averages on subconstruct\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.subplots_adjust(hspace=0.4) 
+    fig.tight_layout()
+    plt.savefig(graphs/"st_know.svg", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()
+            
+ 
+
+
+
+
+#####Stewardship --practices
+st_pract=['s_land_physpract_contourlines',
+'s_land_physpract_conttrack',
+'s_land_mngmtpract_ploughing',
+'s_land_mngmtpract_mulching',
+'s_land_mngmtpract_covercrops',
+'s_farm_soil_compost',
+'s_farm_soil_manure']
+
+
+idx = pd.IndexSlice
+
+fig, axes = plt.subplots(nrows= len(st_pract), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10))
+
+axs=fig.axes
+
+  #left hand plots
+for i, var in zip(range(0,len(st_pract)*2,2), st_pract):
+    selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apmean=avg.loc[idx[var, 'All PIP* \n (average)'],:]
+
+
+    #draw out some parameters
+
+    param={}
+    param=plotlabels_f_dict[var]
+
+    #plot left
+    bars=axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color,  linewidth=4,
+    yerr=selmean.err, ecolor='black')
+
+    #labels
+    labelpercmid(bars)
+
+    #titles
+    axs[i].set_title(param['pltitle'])
+
+    #yaxis
+    axs[i].set_ylim([0,1])
+    axs[i].set_ylabel(None)
+    axs[i].yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+
+
+    #x-axis
+    
+
+    #spines
+    axs[i].spines['left'].set_visible(True)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(False)
+    axs[i].spines["left"].set_position(("outward", +5))
+    
+        
+    
+    
+    
+
+    # right plot for differences
+for i, var in zip(range(1,len(st_pract)*2,2), st_pract):
+    
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apdifs=dif.loc[idx[var, 'All PIP* \n (average)'],:]
+
+    #plot right
+    axs[i].errorbar(y=seldif.index, x=seldif['mean'], xerr=seldif.err, fmt='none', ecolor=seldif.color)
+    axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
+    #x-axis
+    axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    #y-axis
+    axs[i].yaxis.tick_right()
+    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    axs[i].invert_yaxis()
+    #spines
+    axs[i].spines['left'].set_visible(False)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(True)
+    axs[i].spines["right"].set_position(("outward", +5))
+    #grid
+    axs[i].yaxis.grid(True)
+    axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
+    axs[-1].set_xlabel('difference: \n(target-comparison)')
+    #title
+    fig.suptitle('Stewardship:\nPractices: % of people that applies practice \nby generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=0,s='Left: % of people that applies practice\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals\nDifferences that are not statistically significant (p<0.05) greyed out', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.subplots_adjust(hspace=0.4) 
+    fig.tight_layout()
+    plt.savefig(graphs/"st_pract.svg", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()
+            
+ 
+
+###resilience
+
+#crop diversity (smaller graph)
+
+
+crop_div=['r_crop_cult_total', 
+'r_crop_sell_total']
+
+
+
+
+
+idx = pd.IndexSlice
+
+fig, axes = plt.subplots(nrows= len(crop_div), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10/2.5))
+
+axs=fig.axes
+
+  #left hand plots
+for i, var in zip(range(0,len(crop_div)*2,2), crop_div):
+    selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+
+
+    #draw out some parameters
+
+    param={}
+    param=plotlabels_f_dict[var]
+
+    #plot left
+    bars=axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color,  linewidth=4,
+    yerr=selmean.err, ecolor='black')
+
+    #labels
+    labelscalemid(bars)
+
+    #titles
+    axs[i].set_title(param['pltitle'])
+
+    #yaxis
+    axs[i].set_ylim([0,15])
+    axs[i].set_ylabel('Count')
+    #axs[i].yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+
+
+    #x-axis
+    
+
+    #spines
+    axs[i].spines['left'].set_visible(True)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(False)
+    axs[i].spines["left"].set_position(("outward", +5))
+    
+        
+    
+    
+    
+
+    # right plot for differences
+for i, var in zip(range(1,len(crop_div)*2,2), crop_div):
+    
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+
+    #plot right
+    axs[i].errorbar(y=seldif.index, x=seldif['mean'], xerr=seldif.err, fmt='none', ecolor=seldif.color)
+    axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
+    #x-axis
+    axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    #y-axis
+    axs[i].yaxis.tick_right()
+    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    axs[i].invert_yaxis()
+    #spines
+    axs[i].spines['left'].set_visible(False)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(True)
+    axs[i].spines["right"].set_position(("outward", +5))
+    #grid
+    axs[i].yaxis.grid(True)
+    axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
+    axs[-1].set_xlabel('difference: \n(target-comparison)')
+    #title
+    fig.suptitle('Resilience:\nCrop diversity: no. of different crops cultivated and sold\nby generation', x=-0.4, y=1.2, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=-0.2, s='Left: % of people that applies practice\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals\nDifferences that are not statistically significant (p<0.05) greyed out', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.subplots_adjust(hspace=0.4) 
+    fig.tight_layout()
+    plt.savefig(graphs/"crop_div.svg", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()       
+ 
+
+# livestock diversity
+
+lvstock=['r_lvstck_total', 'r_lvstck_nutr_producefeed',
+'r_lvstck_nutr_fodder']
+
+
+
+idx = pd.IndexSlice
+
+fig, axes = plt.subplots(nrows= len(lvstock), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10/1.5))
+
+axs=fig.axes
+
+  #left hand plots
+for i, var in zip(range(0,len(lvstock)*2,2), lvstock):
+    selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+
+
+    #draw out some parameters
+
+    param={}
+    param=plotlabels_f_dict[var]
+
+    #plot left
+    bars=axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color,  linewidth=4,
+    yerr=selmean.err, ecolor='black')
+
+    #labels
+    labelscalemid(bars)
+
+    #titles
+    axs[i].set_title(param['pltitle'])
+
+    #yaxis
+    axs[i].set_ylim([0,15])
+    axs[i].set_ylabel('Count')
+    #axs[i].yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+
+
+    #x-axis
+    
+
+    #spines
+    axs[i].spines['left'].set_visible(True)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(False)
+    axs[i].spines["left"].set_position(("outward", +5))
+    
+        
+    
+    
+    
+
+    # right plot for differences
+for i, var in zip(range(1,len(lvstock)*2,2), lvstock):
+    
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+
+    #plot right
+    axs[i].errorbar(y=seldif.index, x=seldif['mean'], xerr=seldif.err, fmt='none', ecolor=seldif.color)
+    axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
+    #x-axis
+    axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    #y-axis
+    axs[i].yaxis.tick_right()
+    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    axs[i].invert_yaxis()
+    #spines
+    axs[i].spines['left'].set_visible(False)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(True)
+    axs[i].spines["right"].set_position(("outward", +5))
+    #grid
+    axs[i].yaxis.grid(True)
+    axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
+    axs[-1].set_xlabel('difference: \n(target-comparison)')
+    #title
+    fig.suptitle('Resilience:\Livestock: livestock diversity and availability of fodder\nby generation', x=-0.4, y=1.2, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=-0.2, s='Left: % of people that applies practice\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals\nDifferences that are not statistically significant (p<0.05) greyed out', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.subplots_adjust(hspace=0.4) 
+    fig.tight_layout()
+    plt.savefig(graphs/"lvstock.svg", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()       
+ 
 
 
 
