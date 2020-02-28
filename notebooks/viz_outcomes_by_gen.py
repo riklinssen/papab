@@ -639,7 +639,7 @@ for i, var in zip(range(1,len(lvstock)*2,2), lvstock):
     axs[0].set_ylabel('Count')
     
     #title
-    fig.suptitle('Resilience:Livestock: livestock diversity and availability of fodder\nby generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    fig.suptitle('Resilience: Livestock: livestock diversity and availability of fodder\nby generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
     plt.figtext(x=-0.4, y=-0.1, s='Left: % of people that applies practice\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals\nDifferences that are not statistically significant (p<0.05) greyed out', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
     fig.subplots_adjust(hspace=0.4) 
     fig.tight_layout()
@@ -647,7 +647,91 @@ for i, var in zip(range(1,len(lvstock)*2,2), lvstock):
     fig.show()       
  
 
+##household resilience and coping (smaller graph)
+
+rescop=['r_res_mean','r_cop_mean']
 
 
+idx = pd.IndexSlice
+
+fig, axes = plt.subplots(nrows= len(rescop), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10/2.5))
+
+axs=fig.axes
+
+  #left hand plots
+for i, var in zip(range(0,len(rescop)*2,2), rescop):
+    selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+
+
+    #draw out some parameters
+
+    param={}
+    param=plotlabels_f_dict[var]
+
+    #plot left
+    bars=axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color,  linewidth=4,
+    yerr=selmean.err, ecolor='black')
+
+    #labels
+    labelscalemid(bars)
+
+    #titles
+    axs[i].set_title(param['pltitle'])
+
+    #y-axis   
+    axs[i].set_ylim(param['yminv'], param['ymaxv'])
+    axs[i].set_ylabel(None)
+    axs[i].set_yticks(np.arange(param['yminv'], param['ymaxv']+1, 1))
+    ytick=axs[i].get_yticks().tolist()    
+    ytick[0]=param['yminl']
+    ytick[-1]=param['ymaxl']
+    axs[i].set_yticklabels(ytick, fontsize=8)
+
+    #x-axis
+    
+
+    #spines
+    axs[i].spines['left'].set_visible(True)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(False)
+    axs[i].spines["left"].set_position(("outward", +5))
+    
+        
+    
+    
+    
+
+    # right plot for differences
+for i, var in zip(range(1,len(rescop)*2,2), rescop):
+    
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+
+    #plot right
+    axs[i].errorbar(y=seldif.index, x=seldif['mean'], xerr=seldif.err, fmt='none', ecolor=seldif.color)
+    axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
+    #x-axis
+    axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    #y-axis
+    axs[i].yaxis.tick_right()
+    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    axs[i].invert_yaxis()
+    #spines
+    axs[i].spines['left'].set_visible(False)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(True)
+    axs[i].spines["right"].set_position(("outward", +5))
+    #grid
+    axs[i].yaxis.grid(True)
+    axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
+    axs[-1].set_xlabel('difference: \n(target-comparison)')
+    #title
+    fig.suptitle('Resilience: Household resilience and coping ability \nsubconstructs by generation', x=-0.4, y=1.2, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=-0.2,s='Left: Averages on subconstruct\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.subplots_adjust(hspace=0.4) 
+    fig.tight_layout()
+    plt.savefig(graphs/"rescop.svg", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()
+            
+ 
 
 
