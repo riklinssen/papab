@@ -258,14 +258,15 @@ for i, var in zip(range(1,len(motivation)*2,2), motivation):
     axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
     axs[-1].set_xlabel('difference: \n(target-comparison)')
     #title
-    fig.suptitle('Motivation:\nsubconstructs by generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
-    plt.figtext(x=-0.4, y=0,s='Left: Averages on subconstruct\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.suptitle("Motivation: subconstructs, by generation\n\nLeft: values on sub-construct, by generation\n\nRight: Impact: difference between generation \nand generation's comparison group", x=-0.4, y=1.1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=0,s='Left: Averages on subconstruct\nRight:  Generation- (matched) comparison (treatment effect)\nHorizontal lines represent 95% confidence intervals\nNon-significant differences greyed out', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
     fig.subplots_adjust(hspace=0.4) 
     fig.tight_layout()
     plt.savefig(graphs/"motivation.svg", dpi=300, facecolor='w', bbox_inches='tight')
     fig.show()
             
  
+
 
 #####Stewardship --knowledge and use of commons-
 
@@ -735,3 +736,174 @@ for i, var in zip(range(1,len(rescop)*2,2), rescop):
  
 
 
+# Overall/on pillar
+mot=['motivation_score'] 
+
+idx = pd.IndexSlice
+
+fig, axes = plt.subplots(nrows= len(mot), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,3.5*1.61))
+
+axs=fig.axes
+
+  #left hand plots
+for i, var in zip(range(0,len(mot)*2,2), mot):
+    selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+
+
+    #draw out some parameters
+
+    param={}
+    param=plotlabels_f_dict[var]
+
+    #plot left
+    bars=axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color,  linewidth=4,
+    yerr=selmean.err, ecolor='black')
+
+    #labels
+    labelscalemid(bars)
+
+    #titles
+    axs[i].set_title(param['pltitle'])
+
+    #y-axis   
+    axs[i].set_ylim(param['yminv'], param['ymaxv'])
+    axs[i].set_ylabel('Motivavation score', fontstyle='italic')
+    axs[i].set_yticks([0, 25, 50, 75, 100])
+    ytick=axs[i].get_yticks().tolist()    
+    ytick[0]='0-low motivation'
+    ytick[-1]='100-high motivation'
+    axs[i].set_yticklabels(ytick, fontsize=8)
+
+    #x-axis
+    
+
+    #spines
+    axs[i].spines['left'].set_visible(True)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(False)
+    axs[i].spines["left"].set_position(("outward", +5))
+    
+        
+    
+    
+    
+
+    # right plot for differences
+for i, var in zip(range(1,len(mot)*2,2), mot):
+    
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+
+    #plot right
+    axs[i].errorbar(y=seldif.index, x=seldif['mean'], xerr=seldif.err, fmt='none', ecolor=seldif.color)
+    axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
+    #x-axis
+    axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    #y-axis
+    axs[i].yaxis.tick_right()
+    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    axs[i].invert_yaxis()
+    #spines
+    axs[i].spines['left'].set_visible(False)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(True)
+    axs[i].spines["right"].set_position(("outward", +5))
+    #grid
+    axs[i].yaxis.grid(True)
+    axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
+    axs[-1].set_xlabel('difference: \n(target-comparison)')
+    #title
+    fig.suptitle('Motivation: Overall score by generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=-0.1,s='Left: Averages motivation score\nRight: differences Generation- (matched) comparison (treatment effect)\nHorizontal/vertical lines represent 95% confidence intervals', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.subplots_adjust(hspace=0.4) 
+    fig.tight_layout()
+    plt.savefig(graphs/"score_motivation.png", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()
+            
+ 
+
+ 
+
+# Overall/on pillar
+resi=['motivation_score'] 
+
+idx = pd.IndexSlice
+
+fig, axes = plt.subplots(nrows= len(mot), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,3.5*1.61))
+
+axs=fig.axes
+
+  #left hand plots
+for i, var in zip(range(0,len(mot)*2,2), mot):
+    selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+
+
+    #draw out some parameters
+
+    param={}
+    param=plotlabels_f_dict[var]
+
+    #plot left
+    bars=axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color,  linewidth=4,
+    yerr=selmean.err, ecolor='black')
+
+    #labels
+    labelscalemid(bars)
+
+    #titles
+    axs[i].set_title(param['pltitle'])
+
+    #y-axis   
+    axs[i].set_ylim(param['yminv'], param['ymaxv'])
+    axs[i].set_ylabel('Motivavation score', fontstyle='italic')
+    axs[i].set_yticks([0, 25, 50, 75, 100])
+    ytick=axs[i].get_yticks().tolist()    
+    ytick[0]='0-low motivation'
+    ytick[-1]='100-high motivation'
+    axs[i].set_yticklabels(ytick, fontsize=8)
+
+    #x-axis
+    
+
+    #spines
+    axs[i].spines['left'].set_visible(True)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(False)
+    axs[i].spines["left"].set_position(("outward", +5))
+    
+        
+    
+    
+    
+
+    # right plot for differences
+for i, var in zip(range(1,len(mot)*2,2), mot):
+    
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+
+    #plot right
+    axs[i].errorbar(y=seldif.index, x=seldif['mean'], xerr=seldif.err, fmt='none', ecolor=seldif.color)
+    axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
+    #x-axis
+    axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    #y-axis
+    axs[i].yaxis.tick_right()
+    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    axs[i].invert_yaxis()
+    #spines
+    axs[i].spines['left'].set_visible(False)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(True)
+    axs[i].spines["right"].set_position(("outward", +5))
+    #grid
+    axs[i].yaxis.grid(True)
+    axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
+    axs[-1].set_xlabel('difference: \n(target-comparison)')
+    #title
+    fig.suptitle('Motivation: Overall score by generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=-0.1,s='Left: Averages motivation score\nRight: differences Generation- (matched) comparison (treatment effect)\nHorizontal/vertical lines represent 95% confidence intervals', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.subplots_adjust(hspace=0.4) 
+    fig.tight_layout()
+    plt.savefig(graphs/"score_motivation.png", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()
+            
+ 
