@@ -179,11 +179,11 @@ def labelpercmid(bars, xpos='center'):
                 '{}'.format(heightp), ha=ha[xpos], va='bottom', color='white', alpha=1, size='small')
 
 
+idx = pd.IndexSlice
 
 ##motivation plots -leave out motivation score
 motivation=list(avg.loc[avg.pillar=='motivation'].index.get_level_values('resultvar').unique())[:-1]
 
-idx = pd.IndexSlice
 
 fig, axes = plt.subplots(nrows= len(motivation), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10))
 
@@ -220,6 +220,10 @@ for i, var in zip(range(0,len(motivation)*2,2), motivation):
     axs[i].set_yticklabels(ytick, fontsize=8)
 
     #x-axis
+    for label,kleur in zip(axs[i].get_xticklabels(), list(selmean.color)):
+        label.set_color(kleur)
+        label.set_fontsize('large')
+
     
 
     #spines
@@ -244,17 +248,26 @@ for i, var in zip(range(1,len(motivation)*2,2), motivation):
     axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
     #x-axis
     axs[i].axvline(linewidth=1.5, ls='-', color='black')
+
+
+
     #y-axis
-    axs[i].yaxis.tick_right()
-    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    for label,kleur in zip(axs[i].get_yticklabels(), list(selmean.color)):
+        label.set_color(kleur)
+        label.set_fontsize('large')
+    
     axs[i].invert_yaxis()
+    
+    axs[i].yaxis.tick_right()
+
+    
     #spines
     axs[i].spines['left'].set_visible(False)
     axs[i].spines['top'].set_visible(False)
     axs[i].spines['right'].set_visible(True)
     axs[i].spines["right"].set_position(("outward", +5))
+    
     #grid
-    axs[i].yaxis.grid(True)
     axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
     axs[-1].set_xlabel('difference: \n(target-comparison)')
     #title
@@ -823,8 +836,8 @@ for i, var in zip(range(1,len(mot)*2,2), mot):
 
  
 
-# Overall/on pillar
-resi=['motivation_score'] 
+# Overall/on pillar Resilience
+resi=['resilience_score'] 
 
 idx = pd.IndexSlice
 
@@ -833,7 +846,7 @@ fig, axes = plt.subplots(nrows= len(mot), ncols=2, sharex='col' , gridspec_kw={'
 axs=fig.axes
 
   #left hand plots
-for i, var in zip(range(0,len(mot)*2,2), mot):
+for i, var in zip(range(0,len(mot)*2,2), resi):
     selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
 
 
@@ -854,11 +867,11 @@ for i, var in zip(range(0,len(mot)*2,2), mot):
 
     #y-axis   
     axs[i].set_ylim(param['yminv'], param['ymaxv'])
-    axs[i].set_ylabel('Motivavation score', fontstyle='italic')
+    axs[i].set_ylabel('Resilience score', fontstyle='italic')
     axs[i].set_yticks([0, 25, 50, 75, 100])
     ytick=axs[i].get_yticks().tolist()    
-    ytick[0]='0-low motivation'
-    ytick[-1]='100-high motivation'
+    ytick[0]='0-low resilience'
+    ytick[-1]='100-high resilience'
     axs[i].set_yticklabels(ytick, fontsize=8)
 
     #x-axis
@@ -899,11 +912,14 @@ for i, var in zip(range(1,len(mot)*2,2), mot):
     axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
     axs[-1].set_xlabel('difference: \n(target-comparison)')
     #title
-    fig.suptitle('Motivation: Overall score by generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
-    plt.figtext(x=-0.4, y=-0.1,s='Left: Averages motivation score\nRight: differences Generation- (matched) comparison (treatment effect)\nHorizontal/vertical lines represent 95% confidence intervals', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.suptitle('Resilience: Overall score by generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=-0.1,s='Left: Averages resilience score\nRight: differences Generation- (matched) comparison (treatment effect)\nHorizontal/vertical lines represent 95% confidence intervals', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
     fig.subplots_adjust(hspace=0.4) 
     fig.tight_layout()
-    plt.savefig(graphs/"score_motivation.png", dpi=300, facecolor='w', bbox_inches='tight')
+    plt.savefig(graphs/"score_resilience.png", dpi=300, facecolor='w', bbox_inches='tight')
     fig.show()
             
  
+
+
+
