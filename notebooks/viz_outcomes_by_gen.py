@@ -1008,7 +1008,85 @@ for i, var in zip(range(1,len(stew)*2,2), stew):
 
 ##visualisations impacts on pillar joint per generation
 pscales=mot + resi + stew 
+gens=['G 1',
+ 'G 2',
+ 'G 3',
+ 'G 4']
 
-fig, axes = plt.subplots(nrows= 1, ncols=4, sharey='row', sharex='col' , figsize=(3.5*2 ,3.5))
+compgroups=[c for c in results.group.unique() if 'Comparison' in c and 'allpip' not in c]
+
+
+idx = pd.IndexSlice
+
+pscales_df_pip=avg.loc[idx[pscales,gens],:]
+
+#now construct similar set with comparison group means. 
+
+pscales_df_nonpip=results.loc[results['group'].isin(compgroups) & results['resultvar'].isin(pscales)]
+pscales_df_nonpip['generation']=pscales_df_nonpip.group.map(
+    dict(
+    zip(['Comparison PIP1', 'Comparison PIP2', 'Comparison PIP3',
+       'Comparison PIP4', 'Comparison PIP_allpip'],
+       ['G 1',
+       'G 2',
+       'G 3',
+       'G 4']))
+       )
+
+pscales_df_nonpip=pscales_df_nonpip.set_index(
+    ['resultvar', 'generation', ]
+    ).sort_index()
+pscales_df=pd.DataFrame(index=pscales_df_pip.index)
+pscales_df['mean_target']=pscales_df_pip['mean']
+pscales_df['mean_comparison']=pscales_df_nonpip['mean']
+pscales_df['difference']=dif['mean']
+pscales_df['pvalue']=dif['pvalue']
+pscales_df['color']=dif['color']
+pscales_df['sample']=dif['sample']
+pscales_df['label']=pscales_df.index.get_level_values(
+    'resultvar').map({
+        'motivation_score': 'Motivation',
+        'resilience_score': 'Resilience',
+        'stewardship_score_v2': 'Stewardship'}
+        )
+
+#grey out if non sig
+
+pscales_df['color']=np.where(pscales_df.pvalue > 0.05, '#d3d3d3',pscales_df['color'])
+
+###differences (raw)
+
+fig, axes = plt.subplots(nrows= 1, ncols=len(gens), sharey='row', sharex='col' , figsize=(3.5*2 ,3.5/1.61))
 
 axs=fig.axes
+for i, gen in enumerate(gens):
+    sel=pscales_df.loc[idx[:,gen],:].droplevel(1).set_index('label')
+    axs[i].barh(y=sel.index, height=0.5, width=sel['difference'], color=sel.color)
+    #add labels
+    rects = axs[i].patches
+    # For each bar: Place a label
+    for rect in rects:
+        # Get X and Y placement of label from rect.
+        x_value = rect.get_width()
+        x_place= rect.get_width()*1.05
+        y_value = rect.get_y() + rect.get_height() / 2
+        label =  '{:.0f}'.format(round(x_value,1))
+        kleur=rect.get_facecolor()
+        axs[i].text(x_place, y_value, label, verticalalignment='center', size='small', color=kleur)
+
+        
+    sns.despine(ax=axs[i])
+    #3axs[i].barh(y=sel.index, width=sel['mean_comparison'],  color=sel.color, alpha=0.8)
+    #axs[i].hlines(y=sel.index, xmin=sel['mean_comparison'], xmax=sel['mean_target'], color=sel.color, alpha=0.8)
+    axs[i].set_title(gen)
+    axs[i].set_xlim(0,50)
+
+    axs[i].invert_yaxis()
+    #title
+    fig.suptitle('Effect sizes: Motivation, resilience, and stewardship\nDifference in means (target - matched comparison group), by generation', x=-0, y=1.2, horizontalalignment='left', verticalalignment='top', fontsize = 'large')
+    #footnotes
+    plt.figtext(x=0, y=-0.1,s="All outcomes (motivation, stewardship & resilience) on the same scale ranging between 0 - 100\nx-axis represent difference=average in target group- average in matched comparison group", fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.tight_layout()
+    plt.savefig(graphs/"pillar_effectsize.png", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()
+
