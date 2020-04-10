@@ -222,7 +222,7 @@ foreach 	x in `outcomes_r'  {
 }
 */
 
-/*********************************************************************
+*********************************************************************
 *Pillar 3: Stewardship
 *********************************************************************
 
@@ -325,7 +325,118 @@ foreach 	x in `outcomes_s'  {
 			putexcel A`irow' = ("`x'")  B`irow' = ("Difference")  
 }
 }
-*/
+
+*************other outcomes****
+
+**income changes
+*6.5 How   is your income from  agriculture and livestock now compared to three years ago?-->r_inc_farm_change_agrlivestock
+*Q6.6 How   is your income from  other sources  now compared to three years ago?--> r_inc_nonfarm_change_other
+
+*Q6.11 Compared   to 3-4 years ago, do you cultivate more, less or the same number of annual crops? r_crop_ann_change
+*Q6.14 Compared to 3-4 years ago, do you cultivate more, less or the same number of perrenial crops? r_crop_per_cult_change 
+*Q6.15 Compared   to 3-4 years ago, do you sell more, less or the same number crops on the market? r_crop_inc_change
+
+*new var for cultivation
+egen r_inc_crop_change=rowmean(r_crop_ann_change r_crop_per_cult_change)
+
+tab1 r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_crop_change r_crop_inc_change
+
+*How   is your income from  other sources  now compared to three years ago?
+
+//setting the locals
+local	 outcomes_s		r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_crop_change r_crop_inc_change
+local	 reg_s			r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_crop_change r_crop_inc_change
+
+//exporting the estimates
+foreach 	i in 1 2 3 4 _allpip {
+*erase 		"pip`i'_otheroutcomes_Regression.xml"
+*erase 		"pip`i'_otheroutcomes_Regression.txt"
+			
+foreach 	var in `reg_s'{
+			qui reg `var' pip`i' [pw=w_g`i'], vce(cluster colline)
+			outreg2 using pip`i'_otheroutcomes__Regression, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
+}
+foreach 	var in `probit_s'{
+			qui probit `var' pip`i' [pw=w_g`i'], vce(cluster colline)
+			outreg2 using pip`i'_otheroutcomes__Regression, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
+}
+}
+*
+
+//exporting the mean values
+foreach		i in 1 2 3 4 _allpip {
+svyset		colline [pw=w_g`i']
+
+local		cols group mean se lb ub pvalue sample
+local 		ncols: word count `cols'
+local 		nrows: word count `outcomes_s' `outcomes_s' `outcomes_s'
+matrix 		v`i'=J(`nrows',`ncols',.)
+mat 		colnames v`i'=`cols'
+
+local 		irow=0
+foreach 	var in `outcomes_s' {
+			local 		++irow
+			qui svy: mean `var' if pip`i'==1		//pip generation
+			matrix pip = r(table)
+			mat 	v`i'[`irow',1]= 1
+			mat 	v`i'[`irow',2]= pip[1,1]
+			mat 	v`i'[`irow',3]= pip[2,1]
+			mat 	v`i'[`irow',4]= pip[5,1]
+			mat 	v`i'[`irow',5]= pip[6,1]
+			qui	svy: reg `var' pip`i'
+			matrix reg = r(table)
+			mat 	v`i'[`irow',6]= reg[4,1]
+			mat		v`i'[`irow',7]= e(N)
+						
+			local 		++irow
+			qui svy: mean `var' if pip`i'==0		//comparison
+			matrix comparison = r(table)	
+			mat 	v`i'[`irow',1]= 0
+			mat 	v`i'[`irow',2]= comparison[1,1]
+			mat 	v`i'[`irow',3]= comparison[2,1]
+			mat 	v`i'[`irow',4]= comparison[5,1]
+			mat 	v`i'[`irow',5]= comparison[6,1]
+			qui	svy: reg `var' pip`i'
+			matrix reg = r(table)
+			mat 	v`i'[`irow',6]= reg[4,1]
+			mat		v`i'[`irow',7]= e(N)
+			
+			local 		++irow 
+			qui	svy: reg `var' pip`i'				//difference
+			matrix diff = r(table)
+			mat 	v`i'[`irow',1]= 2
+			mat 	v`i'[`irow',2]= diff[1,1]
+			mat 	v`i'[`irow',3]= diff[2,1]
+			mat 	v`i'[`irow',4]= diff[5,1]
+			mat 	v`i'[`irow',5]= diff[6,1]
+			mat 	v`i'[`irow',6]= diff[4,1]			
+			mat 	v`i'[`irow',7]= e(N) 
+}
+*
+mat 		list v`i', f(%10.3f)
+
+*erase 		"pip`i'_otheroutcomes_MeanValue.xlsx"
+putexcel 	set "pip`i'_otheroutcomes_MeanValue.xlsx",  modify 	
+putexcel	A1 = matrix(v`i', names) 
+putexcel	A1 = ("name")
+
+*Add name of variable and label
+local 		irow=1
+foreach 	x in `outcomes_s'  {
+			local 		++irow
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("PIP`i'")
+			
+			local 		++irow 
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("Comparison PIP`i'")
+			
+			local 		++irow 
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("Difference")  
+}
+}
+
 
 *********************************************************************
 *Correlation pillar 1&2&3
