@@ -13,7 +13,6 @@ import datetime
 from pathlib import Path
 import re
 from statsmodels.stats.weightstats import DescrStatsW
-import joypy
 
 sns.set_style('white')
 #utils/funcs
@@ -361,8 +360,3 @@ fig.tight_layout()
 fig.show()
 
 
-#check % of people that heard about pip approach
-
-print(clean.loc[clean['pip_generation_clean']=='5. NON-PIP-COMPARISON GROUP']['pip_approach'].value_counts(normalize=True, dropna=False))
-
-print(clean['pip_approach'].get_dummies())
