@@ -35,7 +35,7 @@ varlabs=pd.read_excel(varlabelfilename, usecols=['name', 'vallab', 'varlab']).dr
 #resultsset
 csvfiles = glob.glob("data\interim\*.csv")
 dflist=[]
-pillars=['motivation', 'stewardship', 'resilience']
+pillars=['motivation', 'stewardship', 'resilience', 'otheroutcomes']
 for f in csvfiles: 
     name=f[13:17] # # pip_ =allpip
     pillar=[ p for p in pillars if p in f]
@@ -1090,3 +1090,101 @@ for i, gen in enumerate(gens):
     plt.savefig(graphs/"pillar_effectsize.png", dpi=300, facecolor='w', bbox_inches='tight')
     fig.show()
 
+#check timeshigher
+
+pscales_df['timeshigher']=pscales_df['mean_target']/pscales_df['mean_comparison']
+##########################
+
+#impact on other outcomes
+
+otherout=['r_inc_farm_change_agrlivestock',
+ 'r_inc_nonfarm_change_other',
+ 'r_inc_crop_change',
+ 'r_crop_inc_change']
+
+
+
+
+idx = pd.IndexSlice
+
+fig, axes = plt.subplots(nrows= len(otherout), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10))
+
+axs=fig.axes
+
+  #left hand plots
+for i, var in zip(range(0,len(otherout)*2,2), otherout):
+    selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apmean=avg.loc[idx[var, 'All PIP* \n (average)'],:]
+
+
+    #draw out some parameters
+
+    param={}
+    param=plotlabels_f_dict[var]
+
+    #plot left
+    bars=axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color,  linewidth=4,
+    yerr=selmean.err, ecolor='black')
+
+    #labels
+    labelscalemid(bars)
+
+    #titles
+    axs[i].set_title(param['pltitle'])
+
+    #y-axis   
+    axs[i].set_ylim(param['yminv'], param['ymaxv'])
+    axs[i].set_ylabel(None)
+    axs[i].set_yticks(np.arange(param['yminv'], param['ymaxv']+1, 1))
+    ytick=axs[i].get_yticks().tolist()    
+    ytick[0]=param['yminl']
+    ytick[-1]=param['ymaxl']
+    axs[i].set_yticklabels(ytick, fontsize=8)
+
+    #x-axis
+    
+
+    #spines
+    axs[i].spines['left'].set_visible(True)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(False)
+    axs[i].spines["left"].set_position(("outward", +5))
+    
+        
+    
+    
+    
+
+    # right plot for differences
+for i, var in zip(range(1,len(otherout)*2,2), otherout):
+    
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apdifs=dif.loc[idx[var, 'All PIP* \n (average)'],:]
+
+    #plot right
+    axs[i].errorbar(y=seldif.index, x=seldif['mean'], xerr=seldif.err, fmt='none', ecolor=seldif.color)
+    axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
+    #x-axis
+    axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    #y-axis
+    axs[i].yaxis.tick_right()
+    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    axs[i].invert_yaxis()
+    #spines
+    axs[i].spines['left'].set_visible(False)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(True)
+    axs[i].spines["right"].set_position(("outward", +5))
+    #grid
+    axs[i].yaxis.grid(True)
+    axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
+    axs[-1].set_xlabel('difference: \n(target-comparison)')
+    #title
+    fig.suptitle('Impacts on income and crop yields, by generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=0,s='Left: Averages on subconstruct\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.subplots_adjust(hspace=0.4) 
+    fig.tight_layout()
+    plt.savefig(graphs/"otheroutcomes.svg", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()
+            
+ 
