@@ -516,3 +516,7 @@ Slope of that regression line hopefully steeper for G1 compared to G3. shows (or
 
 
 
+***timing of effects, scale scores by plan completion
+gen pipcomplperc=pip_implemented*100
+* percentage completion on x
+twoway (qfit pipcomplperc motivation_score [aweight = weight_generation_inv]) (qfit pipcomplperc resilience_score [aweight = weight_generation_inv]) (qfit pipcomplperc stewardship_score_v2 [aweight = weight_generation_inv]), legend(order(1 "motivation score" 2 "resilience score"  3 "stewardship score"))
