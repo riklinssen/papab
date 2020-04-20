@@ -12,8 +12,8 @@ import matplotlib.dates as mdates
 import datetime
 from pathlib import Path
 import re
+import squarify
 from statsmodels.stats.weightstats import DescrStatsW
-from statsmodels.graphics.mosaicplot import mosaic
 
 #paths
 root=Path.cwd()
@@ -22,10 +22,8 @@ clean=root/"data"/"clean"
 
 cleanf=clean/"PAPAB Impact study - Ready for analysis.dta"
 clean=pd.read_stata(cleanf, preserve_dtypes=True, index_col='id')
-
+graphs=root/"graphs"
 ####mosaic plot for income profile.
-
-
 inc_source=['r_inc_farm_sh_subscrop',
 'r_inc_farm_sh_subslivestock',
 'r_inc_farm_sh_salefieldcrop',
@@ -160,55 +158,21 @@ toplabels={'r_inc_farm_sh_subscrop': 'Crop production\nhome consumption',
     'r_inc_farm_sh_agrwage': 'Agric\nwage labour', 
     'r_inc_farm_sh_employee': 'Salaried\nemployee', 
     'r_inc_farm_sh_skilled': 'Skilled\ndaily\nlabour',
-    'other sources of income': 'other income'}  
+    'other sources of income': 'other/nincome'}  
 top10['label']=top10.index.map(toplabels)
 top10['colors']=['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99']
 top10['vallab']=[c + '\n{:.1%}'.format(s) for (c,s) in zip(top10.label, top10.Total)]
 
 fig, ax=plt.subplots(nrows=1, ncols=1, figsize=(6,6))
 ax1=squarify.plot(sizes=top10.Total, label=top10.vallab, text_kwargs={'fontsize':9}, color=top10.colors)
+ax1.set_title('Income sources:\nAverage share of income derived from source by source\n(total sample)', fontsize=12, x=0, y=1.1, horizontalalignment='left')
+
+[s.set_visible(False) for s in ax1.spines.values()]
+[t.set_visible(False) for t in ax1.get_xticklines()]
+[t.set_visible(False) for t in ax1.get_yticklines()]
+[l.set_visible(False) for l in ax1.get_yticklabels()]
+[l.set_visible(False) for l in ax1.get_xticklabels()]
+plt.figtext(x=0, y=0, s='The whole figure represents all income sources combined (100%).\nPercentages represent average share of income\nderived from source in the whole sample', fontstyle='italic', fontweight='light', color='gray')
+
+plt.savefig(graphs/'incsources.png', bbox_inches='tight', dpi=300)
 fig.show()
-
-
-#label the income sources
-
-for c in inc_source_df.columns: 
-    print(inc_source_df[c].value_counts(dropna=False))
-all(inc_source_df['r_inc_farm_sh_total']==1)
-all(inc_source_df['sum']==1)
-
-
-
-import squarify
-from numpy.random import rand
-
-fig, axes = plt.subplots(2, 3, figsize=(14, 8))
-plt.subplots_adjust(top=0.95, bottom=0.05, left=0.05, right=0.95, hspace=0.35)
-
-sq = 8
-
-def random_colors(n):
-    return list(zip(rand(n), rand(n), rand(n)))
-
-labels = ['Sq{0}'.format(i) for i in range(sq)]
-
-axes[0, 0].set_title('Default')
-squarify.plot(rand(sq), ax=axes[0, 0])
-
-axes[0, 1].set_title('Specify single color')
-squarify.plot(rand(sq), color='r', ax=axes[0, 1])
-
-axes[0, 2].set_title('Specify each colors')
-squarify.plot(rand(sq), color=random_colors(sq), ax=axes[0, 2])
-
-axes[1, 0].set_title('Specify labels')
-squarify.plot(rand(sq), label=labels, ax=axes[1, 0])
-
-sizes = rand(sq)
-values = ['{0:0.2f}'.format(s) for s in sizes]
-axes[1, 1].set_title('Specify values')
-squarify.plot(sizes, value=values, ax=axes[1, 1])
-
-axes[1, 2].set_title('Specify labels and values')
-squarify.plot(sizes, label=labels, value=values, ax=axes[1, 2])
-plt.show()
