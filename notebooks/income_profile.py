@@ -164,8 +164,8 @@ top10['colors']=['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#f
 top10['vallab']=[c + '\n{:.1%}'.format(s) for (c,s) in zip(top10.label, top10.Total)]
 
 fig, ax=plt.subplots(nrows=1, ncols=1, figsize=(6,6))
-ax1=squarify.plot(sizes=top10.Total, label=top10.vallab, text_kwargs={'fontsize':9}, color=top10.colors)
-ax1.set_title('Income sources:\nAverage share of income derived from source by source\n(total sample)', fontsize=12, x=0, y=1.1, horizontalalignment='left')
+ax1=squarify.plot(sizes=top10.Total, label=top10.vallab, text_kwargs={'fontsize':'small'}, color=top10.colors)
+ax1.set_title('Income sources:\nAverage share of income derived from source\n(total sample)', fontsize=12, x=0, y=1.1, horizontalalignment='left')
 
 [s.set_visible(False) for s in ax1.spines.values()]
 [t.set_visible(False) for t in ax1.get_xticklines()]
