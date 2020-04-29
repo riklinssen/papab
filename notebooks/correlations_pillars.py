@@ -100,8 +100,8 @@ ax1.set_xlabel('Pillar', fontstyle='italic', size='large')
 ax1.tick_params(axis='x', bottom=False, top=True, labelbottom=False, labeltop=True, size=2)
 ax1.xaxis.set_label_position('top')
 f.suptitle('Correlation-coefficients*\nMotivation (sub-constructs)\nand Resilience & Stewardship', x=-0.5, y=1.3, ha='left')
-plt.figtext(-0.5,-0.1, "* Pearson's r\ranging from -1 perfect negative correlation to 1, perfect positive correlation\nDarker green represents stronger positive correlation\nDarker purple represent stronger negative correlation\nall cofficients significant at p<0.01", size='x-small')
-plt.savefig(graphs/'motivation_correlations.svg')
+plt.figtext(-0.5,-0.1, "* Pearson's r\nranging from -1 perfect negative correlation to 1, perfect positive correlation\nDarker green represents stronger positive correlation\nDarker purple represent stronger negative correlation\nall cofficients significant at p<0.01", size='x-small')
+plt.savefig(graphs/'motivation_correlations.svg', bbox_inches='tight')
 
 
 
@@ -114,7 +114,7 @@ ax1.tick_params(axis='x', bottom=False, top=True, labelbottom=False, labeltop=Tr
 ax1.xaxis.set_label_position('top')
 f.suptitle('Correlation-coefficients*\nResilience (sub-constructs)\nand Stewardship', x=-0.5, y=1.1, ha='left')
 plt.figtext(-0.5,-0.1, "* Pearson's r\nranging from -1 perfect negative correlation to 1, perfect positive correlation\nDarker green represents stronger positive correlation\nDarker purple represent stronger negative correlation\nall cofficients significant at p<0.01", size='x-small')
-plt.savefig(graphs/'resilience_correlations.svg')
+plt.savefig(graphs/'resilience_correlations.svg', bbox_inches='tight')
 
 
 ###correlations between pillars
@@ -168,7 +168,10 @@ axs[0,0].yaxis.set_label_text('Motivation (score 0-100)',size='large')
 fig=plt.gcf()
 fig.suptitle('Correlation between pillars:\nScores for motivation, resilience, and stewardship plotted against eachother\nDistributions of scores on diagonals', x=0, y=1.1, ha='left', size='x-large')
 plt.figtext(0,-0.1, "r = Pearson's r ranging from -1 perfect negative correlation to 1, perfect positive correlation\nall correlation coefficients significant at p<0.01\nfull sample, n=962", size='small')
-plt.savefig(graphs/'resilience_correlations.svg', bbox_inches='tight')
+plt.savefig(graphs/'pillar_correlations.svg', bbox_inches='tight')
+
+
+###motivation stewardship & resilience by pip-plan completion
 
 
 
@@ -219,7 +222,6 @@ plt.savefig(graphs/'resilience_correlations.svg', bbox_inches='tight')
 
 
 ##################3
-#see if motivation, resilience stewardship changes with plan implemented
 
 #pillars by pip completion
 cols=[c for c in pillarlabels.keys()]
@@ -227,78 +229,45 @@ cols=cols+ ['pip_implemented', 'pip_generation_clean']
 
 
 compldata=clean.loc[:, cols].dropna(axis=0, how='any', subset=['pip_implemented'])
-
 #rename columns nice labels
+pillarlabels['pip_implemented']="% of pip plan completed"
 compldata=compldata.rename(columns=pillarlabels)
-fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6))=plt.subplots(nrows=3, ncols=2)
-sns.regplot(x='pip_implemented', y='Motivation (score 0-100)', order=1, data=compldata, ax=ax1, scatter_kws={'alpha':0.5}, line_kws={'color':'red'})
-sns.regplot(x='pip_implemented', y='Motivation (score 0-100)', order=2,data=compldata, ax=ax2,  scatter_kws={'alpha':0.5}, line_kws={'color':'red'})
-sns.regplot(x='pip_implemented', y='Resilience (score 0-100)', order=1,data=compldata, ax=ax3,  scatter_kws={'alpha':0.5}, line_kws={'color':'red'})
-sns.regplot(x='pip_implemented', y='Resilience (score 0-100)', order=2,data=compldata, ax=ax4,  scatter_kws={'alpha':0.5}, line_kws={'color':'red'})
-sns.regplot(x='pip_implemented', y='Stewardship (score 0-100)', order=1,data=compldata, ax=ax5,  scatter_kws={'alpha':0.5}, line_kws={'color':'red'})
-sns.regplot(x='pip_implemented', y='Stewardship (score 0-100)', order=2,data=compldata, ax=ax6,  scatter_kws={'alpha':0.5}, line_kws={'color':'red'})
-for ax in fig.axes: 
-    ax.set_ylim((0,100))
+compldata.columns=([i.replace(' (','\n(') for i in compldata.columns])
+
+complcorr=list(compldata.corr().loc["% of pip plan completed"].iloc[:-2])
+
+
+
+fig, (ax1, ax2, ax3) =plt.subplots(nrows=3, ncols=1, sharex='row', figsize=(3,3*1.61))
+for ax,r in zip(fig.axes, complcorr): 
+    ax.set_ylim(0,100)
+    ax.set_xlim(0, 1)
+    ax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+    ax.xaxis.set_label("% of pip plan completed")
+    s= 'r = '+ '{:.2f}'.format(r)
+    ax.text(x=0.2,y=0.9, s=s , ha='center', va='center', color='#E70052', fontstyle='italic', transform=ax.transAxes )
+
+plt.subplots_adjust(bottom = 0.2, top =1.3, wspace=0.5, left=0.2)
+
+ax1=sns.regplot(x="% of pip plan completed", y='Motivation\n(score 0-100)', order=2,data=compldata, ax=ax1, scatter_kws=scatkws,  line_kws={'color':'#E70052'})
+ax2=sns.regplot(x="% of pip plan completed", y='Resilience\n(score 0-100)', order=2,data=compldata, ax=ax2, scatter_kws=scatkws, line_kws={'color':'#E70052'})
+ax3=sns.regplot(x="% of pip plan completed", y='Stewardship\n(score 0-100)', order=2,data=compldata, ax=ax3, scatter_kws=scatkws, line_kws={'color':'#E70052'})
+#plot correlation coefficients
+
+
+#titles
+ax1.set_title('Pip completion & Motivation')
+ax2.set_title('Pip completion & Resilience')
+ax3.set_title('Pip completion & Stewardship')
+
+sns.despine()
+for axi in fig.axes[:-1]:
+    axi.xaxis.set_visible(False) # Hide only x axis
+
+fig.suptitle('Correlation between pip plan completion\nand scores on pillar\nmotivation, resilience, and stewardship', x=0, y=1.5, ha='left', size='x-large')
+plt.figtext(0,0, "r = Pearson's r ranging from:\n-1 perfect negative correlation to 1, perfect positive correlation\nall correlation coefficients significant at p<0.01\npip farmers only, n=488", size='small')
+plt.savefig(graphs/'pip_completion_corr.svg', bbox_inches='tight')
+
+
 plt.show()
-
-# pip generation not loaded as category change array to categories
-genmap = {k: v for k, v in zip([v for v in range(1, 5)], cmapgens.keys())}
-genmap[5] = 'Comparison \n group'
-genmap
-# stewardship score read in as category
-pillar_df = clean[pillars]
-#catorder
-catorder=pd.CategoricalDtype(categories=list(genmap.values()), ordered=True)
-pillar_df['generation'] = pillar_df['pip_generation_clean'].map(genmap).astype(catorder)
-pillar_df=pillar_df.drop(columns=['pip_generation_clean'])
-# colors for generations.
-genplotpalette = [clr for clr in list(cmapgens.values())[:-1]]
-
-sns.set_palette(sns.color_palette(genplotpalette))
-fig, axs = plt.subplots(nrows=1, ncols=)
-
-###motivation score--> resilience by generation
-mot_reli = sns.lmplot(x="motivation_score", y="resilience_score", col='generation',
-               hue='generation', data=pillar_df, scatter_kws={"alpha": 0.2}, height=3.5, aspect=3.5/5).set_axis_labels('Motivation (score 0-100)', 'Resilience (score 0-100)')
-
-fig=plt.gcf()
-axs=fig.axes
-for ax, title, c in zip(axs,list(genmap.values()),genplotpalette): 
-    ax.set_title(title, color=c), 
-plt.show(fig)
-
-
-## motivation score--> stewardship by generation
-mot_stew = sns.lmplot(x="motivation_score", y="stewardship_score_v2", col='generation',
-               hue='generation', data=pillar_df, scatter_kws={"alpha": 0.2}, height=3.5, aspect=3.5/5).set_axis_labels('Motivation (score 0-100)', 'Stewardship (score 0-100)')
-
-fig=plt.gcf()
-axs=fig.axes
-for ax, title, c in zip(axs,list(genmap.values()),genplotpalette): 
-    ax.set_title(title, color=c), 
-plt.show(fig)
-
-fig.suptitle('suptitle')
-plt.show()
-
-## stewardship score--> reilience by generation
-res_stew = sns.lmplot(x="resilience_score", y="stewardship_score_v2", col='generation',
-               hue='generation', data=pillar_df, scatter_kws={"alpha": 0.2}, height=3.5, aspect=3.5/5).set_axis_labels('Resilience (score 0-100)', 'Stewardship (score 0-100)')
-
-fig=plt.gcf()
-axs=fig.axes
-for ax, title, c in zip(axs,list(genmap.values()),genplotpalette): 
-    ax.set_title(title, color=c), 
-fig.suptitle('suptitle')
-plt.show(fig)
-
-fig.suptitle('suptitle')
-plt.show()
-
-test=pillar_df['generation']!='Comparison \n group']
-nocomp=pillar_df['generation'!='Comparison \n group']
-pillar_gens=pillar_df.loc[
-sns.lmplot(x="motivation_score",  y="stewardship_score_v2", data=pillar_df.loc[pillar_df['generation']!='Comparison \n group'], hue='generation' )
-
-sns.lmplot(x="motivation_score",  y="stewardship_score_v2", data=pillar_df)
 
