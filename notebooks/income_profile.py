@@ -60,13 +60,15 @@ inc_source_df=clean.loc[:,inc_source].fillna(value=0, axis=1)
 #round here for decimals.
 
 inc_source_df['sum']=inc_source_df.loc[:,inc_source[:-1]].sum(axis=1).round(2)
+
 #check if addup. 
 all((inc_source_df.loc[:,inc_source[:-1]].sum(axis=1).round(2))==inc_source_df['r_inc_farm_sh_total'])
 
 inc_source_df['generation']=clean['pip_generation_clean'].cat.rename_categories(['Generation 1', 'Generation 2', 'Generation 3', 'Generation 4', 'Comparison group'])
 
 bygen=inc_source_df.groupby('generation')[inc_source].mean().T
-totals=pd.DataFrame(inc_source_df[inc_source].mean(), columns=['Total'])
+
+totals=pd.DataFrame(inc_source_df[inc_source].mean(), columns=['All'])
 shares=pd.concat([totals, bygen], axis=1).drop('r_inc_farm_sh_total', axis=0)
 
 #categorizations of income
@@ -145,9 +147,12 @@ shares['finetype']=shares.index.map({
 })
 
 #10 most often occuring shares
-top10=shares.sort_values(by='Total', ascending=False).head(10)
-notin10=pd.Series(shares[~shares.index.isin(top10.index)].mean(axis=0), name='other sources of income')
-top10=top10.append(notin10)
+top9=shares[['All', 'Generation 1', 'Generation 2', 'Generation 3', 'Generation 4',
+       'Comparison group']].sort_values(by='All', ascending=False).head(9)
+top10=top9.append((pd.Series(1-top9.sum(), name='other sources of income')))
+
+#check if addup
+all(top10.sum()==1)
 toplabels={'r_inc_farm_sh_subscrop': 'Crop production\nhome consumption', 
     'r_inc_farm_sh_salefieldcrop': 'Prod. & sale \nof field crops', 
     'r_inc_farm_sh_salecashcrop': 'Prod. & sales of\ncash crops', 
@@ -158,13 +163,17 @@ toplabels={'r_inc_farm_sh_subscrop': 'Crop production\nhome consumption',
     'r_inc_farm_sh_agrwage': 'Agric\nwage labour', 
     'r_inc_farm_sh_employee': 'Salaried\nemployee', 
     'r_inc_farm_sh_skilled': 'Skilled\ndaily\nlabour',
-    'other sources of income': 'other/nincome'}  
+    'other sources of income': 'other\nmiscellaneous\nsources of income'}
+
+#check if all labels are still in there
+all(top10.index.isin(toplabels.keys()))
+
 top10['label']=top10.index.map(toplabels)
-top10['colors']=['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99']
-top10['vallab']=[c + '\n{:.1%}'.format(s) for (c,s) in zip(top10.label, top10.Total)]
+top10['colors']=['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#ffff99']
+top10['vallab']=[c + '\n{:.1%}'.format(s) for (c,s) in zip(top10.label, top10.All)]
 
 fig, ax=plt.subplots(nrows=1, ncols=1, figsize=(6,6))
-ax1=squarify.plot(sizes=top10.Total, label=top10.vallab, text_kwargs={'fontsize':'small'}, color=top10.colors)
+ax1=squarify.plot(sizes=top10.All, label=top10.vallab, text_kwargs={'fontsize':'small'}, color=top10.colors)
 ax1.set_title('Income sources:\nAverage share of income derived from source\n(total sample)', fontsize=12, x=0, y=1.1, horizontalalignment='left')
 
 [s.set_visible(False) for s in ax1.spines.values()]

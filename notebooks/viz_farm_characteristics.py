@@ -12,6 +12,7 @@ import matplotlib.dates as mdates
 import datetime
 from pathlib import Path
 import re
+import joypy
 from statsmodels.stats.weightstats import DescrStatsW
 
 sns.set_style('white')
@@ -87,7 +88,7 @@ interim=root/"data"/"interim"
 clean=root/"data"/"clean"
 #graphs=root/"graphs"
 
-graphs=Path(r"C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\5. Report\Graphs")
+graphs=root/"graphs"
 
 descr=pd.read_excel(interim/"PAPAB Impact study - SocioDemographics.xlsx", names=['variable', 'group', 'mean', 'se', 'ci_lowerbound', 'ci_upperbound', 'n'], index_col=0)
 
@@ -313,6 +314,7 @@ joyd['color']=joyd['pip_generation_clean'].map(cmapgens)
 
 fig,axes=joypy.joyplot(joyd, by='pip_generation_clean')#,  color=['#0B9CDA', '#53297D', '#630235','#E43989'])
 
+colors=list(cmapgens.values())
 
 for ax, cl in zip(fig.axes, colors): 
     ax.set_xlim([0,1])
@@ -325,6 +327,7 @@ cmap={'G 1': '#0B9CDA',
             'G 2': '#53297D',
             'G 3': '#630235',
             'G 4': '#E43989'} 
+groups=list(cmap.keys())
 bins=np.linspace(0,1,num=10)
 fig=plt.figure(figsize=((3.13,3.13)), constrained_layout=True)
 for i, gr in enumerate(groups):
