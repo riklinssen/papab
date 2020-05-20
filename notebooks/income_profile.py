@@ -174,14 +174,14 @@ top10['vallab']=[c + '\n{:.1%}'.format(s) for (c,s) in zip(top10.label, top10.Al
 
 fig, ax=plt.subplots(nrows=1, ncols=1, figsize=(6,6))
 ax1=squarify.plot(sizes=top10.All, label=top10.vallab, text_kwargs={'fontsize':'small'}, color=top10.colors)
-ax1.set_title('Income sources:\nAverage share of income derived from source\n(total sample)', fontsize=12, x=0, y=1.1, horizontalalignment='left')
+fig.suptitle('Income sources:\nAverage share of income derived from source\n(total sample)', fontsize=12, x=0, y=1, horizontalalignment='left')
 
 [s.set_visible(False) for s in ax1.spines.values()]
 [t.set_visible(False) for t in ax1.get_xticklines()]
 [t.set_visible(False) for t in ax1.get_yticklines()]
 [l.set_visible(False) for l in ax1.get_yticklabels()]
 [l.set_visible(False) for l in ax1.get_xticklabels()]
-plt.figtext(x=0, y=0, s='The whole figure represents all income sources combined (100%).\nPercentages represent average share of income\nderived from source in the whole sample', fontstyle='italic', fontweight='light', color='gray')
+plt.figtext(x=0, y=0, s='The whole square represents all income sources combined (100%).\nPercentages represent average share of income derived from source\nin the whole sample, n= 962', fontstyle='italic', fontweight='light', color='gray')
 
 plt.savefig(graphs/'incsources.png', bbox_inches='tight', dpi=300)
 fig.show()
