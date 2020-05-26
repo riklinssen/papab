@@ -221,33 +221,39 @@ foreach 	x in `outcomes_r'  {
 }
 }
 */
-
+/*
 *********************************************************************
 *Pillar 3: Stewardship
 *********************************************************************
 
 //setting the locals
-local	 outcomes_s		s_awa_mean s_comm_mean s_farm_why_mean s_land_why_mean /*
-*/						s_farm_soil_compost s_farm_soil_manure /*
-*/						s_land_physpract_contourlines s_land_physpract_conttrack /*
-*/						s_land_mngmtpract_ploughing s_land_mngmtpract_mulching s_land_mngmtpract_covercrops stewardship_score_v2
-local	 reg_s			s_awa_mean s_comm_mean s_farm_why_mean s_land_why_mean stewardship_score_v2
-local	 probit_s		s_farm_soil_compost s_farm_soil_manure /*
-*/						s_land_physpract_contourlines s_land_physpract_conttrack /*
-*/						s_land_mngmtpract_ploughing s_land_mngmtpract_mulching s_land_mngmtpract_covercrops
+local	 outcomes_s		s_awa_mean s_comm_mean s_howwhy_mean /* awareness changes, use of commons, how and why to use practices (means)
+*/						s_land_physpract_total s_land_mngmtpract_total s_farm_crop_rotation_most s_farm_soil_practtotal /* total counts for practices
+*/						s_land_physpract_contourlines s_land_physpract_conttrack s_land_physpract_stonebunds s_land_physpract_gullycontrol /*physical (proportions)
+*/						s_land_mngmtpract_ploughing s_land_mngmtpract_staggering s_land_mngmtpract_mulching s_land_mngmtpract_covercrops /*land mngmt practices (proportions)
+*/						s_farm_crop_rotation_most /* crop rotation
+*/						s_farm_soil_practcompost s_farm_soil_practmanure s_farm_soil_practchemfert s_farm_soil_practcomp_chem s_farm_soil_practmanure_chem /*soil - fertilizer (proportions)
+*/						stewardship_score_v3 /* score (linear)
+*/
+local	 reg_s			s_awa_mean s_comm_mean s_howwhy_mean s_land_physpract_total s_land_mngmtpract_total s_farm_crop_rotation_most s_farm_soil_practtotal stewardship_score_v3
+local	 probit_s		s_land_physpract_contourlines s_land_physpract_conttrack s_land_physpract_stonebunds s_land_physpract_gullycontrol /*physical (proportions)
+*/						s_land_mngmtpract_ploughing s_land_mngmtpract_staggering s_land_mngmtpract_mulching s_land_mngmtpract_covercrops /*land mngmt practices (proportions)
+*/						s_farm_crop_rotation_most /* crop rotation
+*/						s_farm_soil_practcompost s_farm_soil_practmanure s_farm_soil_practchemfert s_farm_soil_practcomp_chem s_farm_soil_practmanure_chem /*soil - fertilizer (proportions)*/
+
 
 //exporting the estimates
 foreach 	i in 1 2 3 4 _allpip {
-erase 		"pip`i'_stewardship_Regression.xml"
-erase 		"pip`i'_stewardship_Regression.txt"
+*erase 		"pip`i'_stewardship_Regression.xml"
+*erase 		"pip`i'_stewardship_Regression.txt"
 			
 foreach 	var in `reg_s'{
 			qui reg `var' pip`i' [pw=w_g`i'], vce(cluster colline)
-			outreg2 using pip`i'_stewardship_Regression, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
+			outreg2 using pip`i'_stewardship_Regression_v3, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
 }
 foreach 	var in `probit_s'{
 			qui probit `var' pip`i' [pw=w_g`i'], vce(cluster colline)
-			outreg2 using pip`i'_stewardship_Regression, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
+			outreg2 using pip`i'_stewardship_Regression_v3, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
 }
 }
 *
@@ -304,8 +310,8 @@ foreach 	var in `outcomes_s' {
 *
 mat 		list v`i', f(%10.3f)
 
-erase 		"pip`i'_stewardship_MeanValue.xlsx"
-putexcel 	set "pip`i'_stewardship_MeanValue.xlsx",  modify 	
+*erase 		"pip`i'_stewardship_MeanValue.xlsx"
+putexcel 	set "pip`i'_stewardship_MeanValue_v3.xlsx",  modify 	
 putexcel	A1 = matrix(v`i', names) 
 putexcel	A1 = ("name")
 
@@ -326,6 +332,8 @@ foreach 	x in `outcomes_s'  {
 }
 }
 
+
+
 *************other outcomes****
 
 **income changes
@@ -335,12 +343,12 @@ foreach 	x in `outcomes_s'  {
 *Q6.11 Compared   to 3-4 years ago, do you cultivate more, less or the same number of annual crops? r_crop_ann_change
 *Q6.14 Compared to 3-4 years ago, do you cultivate more, less or the same number of perrenial crops? r_crop_per_cult_change 
 *Q6.15 Compared   to 3-4 years ago, do you sell more, less or the same number crops on the market? r_crop_inc_change
-
+*/
 *new var for cultivation
 egen r_inc_crop_change=rowmean(r_crop_ann_change r_crop_per_cult_change)
 
 tab1 r_inc_farm_change_agrlivestock r_inc_nonfarm_change_other r_inc_crop_change r_crop_inc_change
-
+/*
 *How   is your income from  other sources  now compared to three years ago?
 
 //setting the locals
@@ -438,6 +446,10 @@ foreach 	x in `outcomes_s'  {
 }
 
 
+
+
+
+
 *********************************************************************
 *Correlation pillar 1&2&3
 *********************************************************************
@@ -515,8 +527,366 @@ Slope of that regression line hopefully steeper for G1 compared to G3. shows (or
 //gen			stewardship_pip`i'= stewardship_score_v2*pip`i'
 
 
-
+*/
 ***timing of effects, scale scores by plan completion
 gen pipcomplperc=pip_implemented*100
 * percentage completion on x
 twoway (qfit pipcomplperc motivation_score [aweight = weight_generation_inv]) (qfit pipcomplperc resilience_score [aweight = weight_generation_inv]) (qfit pipcomplperc stewardship_score_v2 [aweight = weight_generation_inv]), legend(order(1 "motivation score" 2 "resilience score"  3 "stewardship score"))
+
+
+****food security situation. 
+
+* dums enough
+
+foreach v in r_res_food_1 r_res_food_2 r_res_food_3 r_res_food_4 r_res_food_5 r_res_food_6 r_res_food_7 r_res_food_8 r_res_food_9 r_res_food_10 r_res_food_11 r_res_food_12{ 
+gen Enough_`v'=`v'-2
+replace Enough_`v'=0 if Enough_`v'<1
+lab var Enough_`v' "dum: enough food during month no"
+} 
+
+*dums not enough + barely manage = notenough
+foreach v in r_res_food_1 r_res_food_2 r_res_food_3 r_res_food_4 r_res_food_5 r_res_food_6 r_res_food_7 r_res_food_8 r_res_food_9 r_res_food_10 r_res_food_11 r_res_food_12{ 
+gen Notenoughb_`v'=.
+replace Notenoughb_`v'=1 if `v'<3
+replace Notenoughb_`v'=0 if `v'==3
+lab var Notenoughb_`v' "dum: not enough or just manage food during month no"
+} 
+
+*dums not enough 
+foreach v in r_res_food_1 r_res_food_2 r_res_food_3 r_res_food_4 r_res_food_5 r_res_food_6 r_res_food_7 r_res_food_8 r_res_food_9 r_res_food_10 r_res_food_11 r_res_food_12{ 
+gen Notenough_`v'=.
+replace Notenough_`v'=1 if `v'==1
+replace Notenough_`v'=0 if `v'>1
+lab var Notenough_`v' "dum: not enough food during month no"
+} 
+
+*check
+tab r_res_food_1 Enough_r_res_food_1
+tab r_res_food_1 Notenoughb_r_res_food_1
+tab r_res_food_1 Notenough_r_res_food_1
+/*
+//Enough food 
+//setting the locals
+local	 outcomes_s		Enough_r_res_food_1 Enough_r_res_food_2 Enough_r_res_food_3 Enough_r_res_food_4 Enough_r_res_food_5 Enough_r_res_food_6 Enough_r_res_food_7 Enough_r_res_food_8 Enough_r_res_food_9 Enough_r_res_food_10 Enough_r_res_food_11 Enough_r_res_food_12
+local	 probit_s		Enough_r_res_food_1 Enough_r_res_food_2 Enough_r_res_food_3 Enough_r_res_food_4 Enough_r_res_food_5 Enough_r_res_food_6 Enough_r_res_food_7 Enough_r_res_food_8 Enough_r_res_food_9 Enough_r_res_food_10 Enough_r_res_food_11 Enough_r_res_food_12
+
+//exporting the estimates
+foreach 	i in 1 2 3 4 _allpip {
+*erase 		"pip`i'_otheroutcomes_Regression.xml"
+*erase 		"pip`i'_otheroutcomes_Regression.txt"
+			
+/*
+only propits here (all months are proportions/dummies)
+foreach 	var in `reg_s'{
+			qui reg `var' pip`i' [pw=w_g`i'], vce(cluster colline)
+			outreg2 using pip`i'_otheroutcomes__Regression, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
+}
+*/
+foreach 	var in `probit_s'{
+			qui probit `var' pip`i' [pw=w_g`i'], vce(cluster colline)
+			outreg2 using pip`i'_foodsec_enough__Regression, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
+}
+}
+
+
+
+
+//exporting the mean values
+foreach		i in 1 2 3 4 _allpip {
+svyset		colline [pw=w_g`i']
+
+local		cols group mean se lb ub pvalue sample
+local 		ncols: word count `cols'
+local 		nrows: word count `outcomes_s' `outcomes_s' `outcomes_s'
+matrix 		v`i'=J(`nrows',`ncols',.)
+mat 		colnames v`i'=`cols'
+
+local 		irow=0
+foreach 	var in `outcomes_s' {
+			local 		++irow
+			qui svy: mean `var' if pip`i'==1		//pip generation
+			matrix pip = r(table)
+			mat 	v`i'[`irow',1]= 1
+			mat 	v`i'[`irow',2]= pip[1,1]
+			mat 	v`i'[`irow',3]= pip[2,1]
+			mat 	v`i'[`irow',4]= pip[5,1]
+			mat 	v`i'[`irow',5]= pip[6,1]
+			qui	svy: reg `var' pip`i'
+			matrix reg = r(table)
+			mat 	v`i'[`irow',6]= reg[4,1]
+			mat		v`i'[`irow',7]= e(N)
+						
+			local 		++irow
+			qui svy: mean `var' if pip`i'==0		//comparison
+			matrix comparison = r(table)	
+			mat 	v`i'[`irow',1]= 0
+			mat 	v`i'[`irow',2]= comparison[1,1]
+			mat 	v`i'[`irow',3]= comparison[2,1]
+			mat 	v`i'[`irow',4]= comparison[5,1]
+			mat 	v`i'[`irow',5]= comparison[6,1]
+			qui	svy: reg `var' pip`i'
+			matrix reg = r(table)
+			mat 	v`i'[`irow',6]= reg[4,1]
+			mat		v`i'[`irow',7]= e(N)
+			
+			local 		++irow 
+			qui	svy: reg `var' pip`i'				//difference
+			matrix diff = r(table)
+			mat 	v`i'[`irow',1]= 2
+			mat 	v`i'[`irow',2]= diff[1,1]
+			mat 	v`i'[`irow',3]= diff[2,1]
+			mat 	v`i'[`irow',4]= diff[5,1]
+			mat 	v`i'[`irow',5]= diff[6,1]
+			mat 	v`i'[`irow',6]= diff[4,1]			
+			mat 	v`i'[`irow',7]= e(N) 
+}
+*
+mat 		list v`i', f(%10.3f)
+
+erase 		"pip`i'_foodsec_enough_MeanValue.xlsx"
+putexcel 	set "pip`i'_foodsec_enough_MeanValue.xlsx",  modify 	
+putexcel	A1 = matrix(v`i', names) 
+putexcel	A1 = ("name")
+
+*Add name of variable and label
+local 		irow=1
+foreach 	x in `outcomes_s'  {
+			local 		++irow
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("PIP`i'")
+			
+			local 		++irow 
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("Comparison PIP`i'")
+			
+			local 		++irow 
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("Difference")  
+}
+}
+
+
+//not enough food (not enough + barely)
+
+
+//Enough food 
+//setting the locals
+local	 outcomes_s		Notenoughb_r_res_food_1 Notenoughb_r_res_food_2 Notenoughb_r_res_food_3 Notenoughb_r_res_food_4 Notenoughb_r_res_food_5 Notenoughb_r_res_food_6 Notenoughb_r_res_food_7 Notenoughb_r_res_food_8 Notenoughb_r_res_food_9 Notenoughb_r_res_food_10 Notenoughb_r_res_food_11 Notenoughb_r_res_food_12
+local	 probit_s		Notenoughb_r_res_food_1 Notenoughb_r_res_food_2 Notenoughb_r_res_food_3 Notenoughb_r_res_food_4 Notenoughb_r_res_food_5 Notenoughb_r_res_food_6 Notenoughb_r_res_food_7 Notenoughb_r_res_food_8 Notenoughb_r_res_food_9 Notenoughb_r_res_food_10 Notenoughb_r_res_food_11 Notenoughb_r_res_food_12
+
+//exporting the estimates
+foreach 	i in 1 2 3 4 _allpip {
+*erase 		"pip`i'_otheroutcomes_Regression.xml"
+*erase 		"pip`i'_otheroutcomes_Regression.txt"
+			
+/*
+only propits here (all months are proportions/dummies)
+foreach 	var in `reg_s'{
+			qui reg `var' pip`i' [pw=w_g`i'], vce(cluster colline)
+			outreg2 using pip`i'_otheroutcomes__Regression, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
+}
+*/
+foreach 	var in `probit_s'{
+			qui probit `var' pip`i' [pw=w_g`i'], vce(cluster colline)
+			outreg2 using pip`i'_foodsec_notenoughb__Regression, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
+}
+}
+*
+
+//exporting the mean values
+foreach		i in 1 2 3 4 _allpip {
+svyset		colline [pw=w_g`i']
+
+local		cols group mean se lb ub pvalue sample
+local 		ncols: word count `cols'
+local 		nrows: word count `outcomes_s' `outcomes_s' `outcomes_s'
+matrix 		v`i'=J(`nrows',`ncols',.)
+mat 		colnames v`i'=`cols'
+
+local 		irow=0
+foreach 	var in `outcomes_s' {
+			local 		++irow
+			qui svy: mean `var' if pip`i'==1		//pip generation
+			matrix pip = r(table)
+			mat 	v`i'[`irow',1]= 1
+			mat 	v`i'[`irow',2]= pip[1,1]
+			mat 	v`i'[`irow',3]= pip[2,1]
+			mat 	v`i'[`irow',4]= pip[5,1]
+			mat 	v`i'[`irow',5]= pip[6,1]
+			qui	svy: reg `var' pip`i'
+			matrix reg = r(table)
+			mat 	v`i'[`irow',6]= reg[4,1]
+			mat		v`i'[`irow',7]= e(N)
+						
+			local 		++irow
+			qui svy: mean `var' if pip`i'==0		//comparison
+			matrix comparison = r(table)	
+			mat 	v`i'[`irow',1]= 0
+			mat 	v`i'[`irow',2]= comparison[1,1]
+			mat 	v`i'[`irow',3]= comparison[2,1]
+			mat 	v`i'[`irow',4]= comparison[5,1]
+			mat 	v`i'[`irow',5]= comparison[6,1]
+			qui	svy: reg `var' pip`i'
+			matrix reg = r(table)
+			mat 	v`i'[`irow',6]= reg[4,1]
+			mat		v`i'[`irow',7]= e(N)
+			
+			local 		++irow 
+			qui	svy: reg `var' pip`i'				//difference
+			matrix diff = r(table)
+			mat 	v`i'[`irow',1]= 2
+			mat 	v`i'[`irow',2]= diff[1,1]
+			mat 	v`i'[`irow',3]= diff[2,1]
+			mat 	v`i'[`irow',4]= diff[5,1]
+			mat 	v`i'[`irow',5]= diff[6,1]
+			mat 	v`i'[`irow',6]= diff[4,1]			
+			mat 	v`i'[`irow',7]= e(N) 
+}
+*
+mat 		list v`i', f(%10.3f)
+
+*erase 		"pip`i'_otheroutcomes_MeanValue.xlsx"
+putexcel 	set "pip`i'_foodsec_notenoughb_MeanValue.xlsx",  modify 	
+putexcel	A1 = matrix(v`i', names) 
+putexcel	A1 = ("name")
+
+*Add name of variable and label
+local 		irow=1
+foreach 	x in `outcomes_s'  {
+			local 		++irow
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("PIP`i'")
+			
+			local 		++irow 
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("Comparison PIP`i'")
+			
+			local 		++irow 
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("Difference")  
+}
+}
+
+//not enough
+//setting the locals
+local	 outcomes_s		Notenough_r_res_food_1 Notenough_r_res_food_2 Notenough_r_res_food_3 Notenough_r_res_food_4 Notenough_r_res_food_5 Notenough_r_res_food_6 Notenough_r_res_food_7 Notenough_r_res_food_8 Notenough_r_res_food_9 Notenough_r_res_food_10 Notenough_r_res_food_11 Notenough_r_res_food_12
+local	 probit_s		Notenough_r_res_food_1 Notenough_r_res_food_2 Notenough_r_res_food_3 Notenough_r_res_food_4 Notenough_r_res_food_5 Notenough_r_res_food_6 Notenough_r_res_food_7 Notenough_r_res_food_8 Notenough_r_res_food_9 Notenough_r_res_food_10 Notenough_r_res_food_11 Notenough_r_res_food_12
+
+//exporting the estimates
+foreach 	i in 1 2 3 4 _allpip {
+*erase 		"pip`i'_otheroutcomes_Regression.xml"
+*erase 		"pip`i'_otheroutcomes_Regression.txt"
+			
+/*
+only probits here (all months are proportions/dummies)
+foreach 	var in `reg_s'{
+			qui reg `var' pip`i' [pw=w_g`i'], vce(cluster colline)
+			outreg2 using pip`i'_otheroutcomes__Regression, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
+}
+*/
+foreach 	var in `probit_s'{
+			qui probit `var' pip`i' [pw=w_g`i'], vce(cluster colline)
+			outreg2 using pip`i'_foodsec_notenough__Regression, excel append bdec(5) symbol(***,**,*) alpha(0.01, 0.05, 0.1) pvalue
+}
+}
+*
+
+//exporting the mean values
+foreach		i in 1 2 3 4 _allpip {
+svyset		colline [pw=w_g`i']
+
+local		cols group mean se lb ub pvalue sample
+local 		ncols: word count `cols'
+local 		nrows: word count `outcomes_s' `outcomes_s' `outcomes_s'
+matrix 		v`i'=J(`nrows',`ncols',.)
+mat 		colnames v`i'=`cols'
+
+local 		irow=0
+foreach 	var in `outcomes_s' {
+			local 		++irow
+			qui svy: mean `var' if pip`i'==1		//pip generation
+			matrix pip = r(table)
+			mat 	v`i'[`irow',1]= 1
+			mat 	v`i'[`irow',2]= pip[1,1]
+			mat 	v`i'[`irow',3]= pip[2,1]
+			mat 	v`i'[`irow',4]= pip[5,1]
+			mat 	v`i'[`irow',5]= pip[6,1]
+			qui	svy: reg `var' pip`i'
+			matrix reg = r(table)
+			mat 	v`i'[`irow',6]= reg[4,1]
+			mat		v`i'[`irow',7]= e(N)
+						
+			local 		++irow
+			qui svy: mean `var' if pip`i'==0		//comparison
+			matrix comparison = r(table)	
+			mat 	v`i'[`irow',1]= 0
+			mat 	v`i'[`irow',2]= comparison[1,1]
+			mat 	v`i'[`irow',3]= comparison[2,1]
+			mat 	v`i'[`irow',4]= comparison[5,1]
+			mat 	v`i'[`irow',5]= comparison[6,1]
+			qui	svy: reg `var' pip`i'
+			matrix reg = r(table)
+			mat 	v`i'[`irow',6]= reg[4,1]
+			mat		v`i'[`irow',7]= e(N)
+			
+			local 		++irow 
+			qui	svy: reg `var' pip`i'				//difference
+			matrix diff = r(table)
+			mat 	v`i'[`irow',1]= 2
+			mat 	v`i'[`irow',2]= diff[1,1]
+			mat 	v`i'[`irow',3]= diff[2,1]
+			mat 	v`i'[`irow',4]= diff[5,1]
+			mat 	v`i'[`irow',5]= diff[6,1]
+			mat 	v`i'[`irow',6]= diff[4,1]			
+			mat 	v`i'[`irow',7]= e(N) 
+}
+*
+mat 		list v`i', f(%10.3f)
+
+*erase 		"pip`i'_otheroutcomes_MeanValue.xlsx"
+putexcel 	set "pip`i'_foodsec_notenough_MeanValue.xlsx",  modify 	
+putexcel	A1 = matrix(v`i', names) 
+putexcel	A1 = ("name")
+
+*Add name of variable and label
+local 		irow=1
+foreach 	x in `outcomes_s'  {
+			local 		++irow
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("PIP`i'")
+			
+			local 		++irow 
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("Comparison PIP`i'")
+			
+			local 		++irow 
+			sleep 2500
+			putexcel A`irow' = ("`x'")  B`irow' = ("Difference")  
+}
+}
+*/
+*missing labels
+lab def 	s_farm_crop_rotation_most "uses crop rotation on most plots"
+lab var s_farm_crop_rotation_most s_farm_crop_rotation_most
+
+
+
+
+*export labels
+quietly {
+    log using PAPAB_Codebook.txt, text replace
+    noisily codebook
+    log close
+}
+
+*Export variable name + variable label
+numlabel, add force
+preserve
+    describe *, replace clear
+    list
+    export excel using VariableLabels_PAPAB.xlsx, replace first(var)
+restore
+
+*Export value labels
+uselabel, clear
+export excel lname value label using "ValueLabels_PAPAB", sheetreplace

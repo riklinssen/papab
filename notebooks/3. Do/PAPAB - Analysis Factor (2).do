@@ -587,11 +587,131 @@ lab val s_farm_soil_compost s_farm_soil_manure s_land_physpract_contourlines s_l
 lab val stewardship_score_v2		st_score
 
 
-*********************************************************************
+
+****reviewed stewardship pillar (vs3)
+****3rd stewardship revision after review
+* structure: 
+* 1 knowledge & awareness (Why and how)
+* 2 practices
+
+* 1. a) Awareness of changes & sense of stewardship 					--> s_awa_mean
+/*
+Why do you think that the soil quality might change, what are possible reasons? 									-s_awa_soilqual_changewhy
+Why do you think that the vegetation might change, what are possible reasons?										- s_awa_veg_changewhy
+Why do you think that the water quality and quantity might change, what are possible reasons? 						- s_awa_water_changewhy
+Please mention three concrete actions that you undertake to conserve protect natural resources outside your own farm. - s_awa_coll_action
+Please give ONE example that describes the importance of nature for yourself.										- s_awa_bio_natureimp_ex
+
+*/
+	
+
+
+* 1. b) use & knowledge of commons --> 									--> s_comm_mean
+/*
+Please explain about the importance of trees and bushes on the land outside your own farm. 						- s_comm_trees_howuse
+Please explain how you use trees and bushes on the land outside your own farm. 									- s_comm_trees_importance
+Please explain the importance of water sources in this village and how you use them.							- s_comm_water_sourceimp 
+Please describe – with examples – how you try to conserve water yourself?										- s_comm_water_howconserve
+Please explain the importance of the common lands in this village and how you use them. 						- s_comm_land_howuse
+Please describe – with examples – how you try to conserve the common lands yourself?							- s_comm_land_howconserve
+
+    
+
+* 1. c) knowledge+ awareness on how to apply physical, land, crop, soil  management practices	--> 
+Physical practices (knowledge)
+- If you have such practices [ physical practices, Contourlines/trenches etc.]], please explain why and how you apply these practices.		- s_land_physpract_whyhow
+Land management practices incl trees (knowledge) 
+- If you have such practices [ land management practices, ploughing on countourline ], please explain why and how you apply these practices.	- s_land_mngmtpract_whyhow
+- Please describe if you have trees on your farm, how you use them, why you have them and if you are satisfied? 								- s_comm_trees_howuse								-
+
+Crop management (knowledge)
+- Why do you use crop rotations on your fields?																									- s_farm_crop_rotationwhy 
+Soil management (knowledge/how & why)
+- If you have these practices, please explain why and how you apply these practices [fertilizer/soil].											- s_farm_soil_practwhyhow
+
+
+
+2. 
+Practices (actual implememention)
+Physical
+*/
+tab1 s_land_physpract_contourlines s_land_physpract_conttrack s_land_physpract_stonebunds s_land_physpract_gullycontrol s_land_physpract_total 
+
+*Land management
+tab1 s_land_mngmtpract_ploughing s_land_mngmtpract_staggering s_land_mngmtpract_mulching s_land_mngmtpract_covercrops s_land_mngmtpract_total
+
+*Crop (rotation)
+gen s_farm_crop_rotation_most=.
+replace s_farm_crop_rotation_most=0 if s_farm_crop_rotation <4
+replace s_farm_crop_rotation_most=1 if s_farm_crop_rotation >3
+
+
+*soil (fertilizer)
+tab1 s_farm_soil_practcompost s_farm_soil_practmanure s_farm_soil_practchemfert s_farm_soil_practcomp_chem s_farm_soil_practmanure_chem s_farm_soil_practtotal
+
+
+ 
+
+
+
+**factor analyses
+* 1. c) how why practices*/ -->s_howwhy_mean
+
+factor		s_land_physpract_whyhow s_land_mngmtpract_whyhow s_comm_trees_howuse s_farm_crop_rotationwhy s_farm_soil_practwhyhow, pf mine(1)
+
+alpha 		s_land_physpract_whyhow s_land_mngmtpract_whyhow s_comm_trees_howuse s_farm_crop_rotationwhy s_farm_soil_practwhyhow, gen(s_howwhy_mean)
+
+
+* 1 b) use & knowledge of commons --> 	s_comm_mean
+
+factor		s_comm_trees_importance s_comm_trees_howuse s_comm_water_howconserve s_comm_water_sourceimp s_comm_land_howuse s_comm_land_howconserve, pf mine(1)
+			//1x eigenvalue>1
+alpha		s_comm_trees_importance s_comm_trees_howuse s_comm_water_howconserve s_comm_water_sourceimp s_comm_land_howuse s_comm_land_howconserve
+			//scale reliability= 0.7760
+
+* 1 a) Awareness of changes & sense of stewardship--> s_awa_mean
+factor		s_awa_soilqual_changewhy s_awa_veg_changewhy s_awa_water_changewhy s_awa_coll_action s_awa_bio_natureimp_ex, pf mine(1)
+
+alpha 		s_awa_soilqual_changewhy s_awa_veg_changewhy s_awa_water_changewhy s_awa_coll_action s_awa_bio_natureimp_ex
+
+*2 practices
+*Physical
+tab1 s_land_physpract_total
+*Land management
+tab1 s_land_mngmtpract_total	
+*Crop
+tab1 s_farm_crop_rotation_most
+*Soil/fertilizer
+tab1 s_farm_soil_practtotal
+
+
+
+***sub-constructs to pillar
+pca s_howwhy_mean s_comm_mean s_awa_mean s_land_physpract_total s_land_mngmtpract_total s_farm_crop_rotation_most s_farm_soil_practtotal,  components(1)
+
+*pillar score
+predict stewardship_pr_v3
+lab var stewardship_pr_v3 "predicted values stewardshipv3 howwhy-commons-stewardship-practice(final)"
+*rescale to 0-100
+//V(new)=	((Max(new)-Min(new))/(Max(old)-Min(old))*(Value(old)-Max(old)) + Max(new)
+summ stewardship_pr_v3
+egen stewardship_pr_v3_max=max(stewardship_pr_v3)
+egen stewardship_pr_v3_min=min(stewardship_pr_v3)
+foreach j in stewardship_pr_v3_max stewardship_pr_v3_min{ 
+replace `j'=. if stewardship_pr_v3==.
+}
+
+
+gen stewardship_score_v3 = (100-0)/(stewardship_pr_v3_max-stewardship_pr_v3_min)* (stewardship_pr_v3-stewardship_pr_v3_max)+100
+lab var stewardship_score_v3 "stewardship score v3 rescaled 0-100"
+
+
+
+********************************************************************
 *SAVE
 *********************************************************************
 
-cd "C:\Users\mariekeme\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\2. Clean"
+cd "C:\Users\RikL\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\2. Clean"
 save "PAPAB Impact study - Analysis2 Incl Factors.dta", replace
 export delimited using "PAPAB Impact study - Analysis2 Incl Factors.csv", replace
 
