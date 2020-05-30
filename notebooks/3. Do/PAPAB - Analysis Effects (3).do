@@ -235,7 +235,7 @@ local	 outcomes_s		s_awa_mean s_comm_mean s_howwhy_mean /* awareness changes, us
 */						s_farm_soil_practcompost s_farm_soil_practmanure s_farm_soil_practchemfert s_farm_soil_practcomp_chem s_farm_soil_practmanure_chem /*soil - fertilizer (proportions)
 */						stewardship_score_v3 /* score (linear)
 */
-local	 reg_s			s_awa_mean s_comm_mean s_howwhy_mean s_land_physpract_total s_land_mngmtpract_total s_farm_crop_rotation_most s_farm_soil_practtotal stewardship_score_v3
+local	 reg_s			s_awa_mean s_comm_mean s_howwhy_mean s_land_physpract_total s_land_mngmtpract_total s_farm_soil_practtotal stewardship_score_v3
 local	 probit_s		s_land_physpract_contourlines s_land_physpract_conttrack s_land_physpract_stonebunds s_land_physpract_gullycontrol /*physical (proportions)
 */						s_land_mngmtpract_ploughing s_land_mngmtpract_staggering s_land_mngmtpract_mulching s_land_mngmtpract_covercrops /*land mngmt practices (proportions)
 */						s_farm_crop_rotation_most /* crop rotation
@@ -866,21 +866,34 @@ foreach 	x in `outcomes_s'  {
 }
 */
 *missing labels
-lab def 	s_farm_crop_rotation_most "uses crop rotation on most plots"
-lab var s_farm_crop_rotation_most s_farm_crop_rotation_most
+lab var s_farm_crop_rotation_most "uses crop rotation on most plots"
+lab val s_farm_crop_rotation_most binary
 
+lab val s_howwhy_mean awareness
+lab val stewardship_score_v3 st_score
 
+foreach j of varlist Enough_r_res_food_1 Enough_r_res_food_2 Enough_r_res_food_3 Enough_r_res_food_4 Enough_r_res_food_5 Enough_r_res_food_6 Enough_r_res_food_7 Enough_r_res_food_8 Enough_r_res_food_9 Enough_r_res_food_10 Enough_r_res_food_11 Enough_r_res_food_12 Notenoughb_r_res_food_1 Notenoughb_r_res_food_2 Notenoughb_r_res_food_3 Notenoughb_r_res_food_4 Notenoughb_r_res_food_5 Notenoughb_r_res_food_6 Notenoughb_r_res_food_7 Notenoughb_r_res_food_8 Notenoughb_r_res_food_9 Notenoughb_r_res_food_10 Notenoughb_r_res_food_11 Notenoughb_r_res_food_12 Notenough_r_res_food_1 Notenough_r_res_food_2 Notenough_r_res_food_3 Notenough_r_res_food_4 Notenough_r_res_food_5 Notenough_r_res_food_6 Notenough_r_res_food_7 Notenough_r_res_food_8 Notenough_r_res_food_9 Notenough_r_res_food_10 Notenough_r_res_food_11 Notenough_r_res_food_12 { 
+lab val `j' binary
+} 
 
+lab val  r_inc_crop_change change
+lab val r_crop_inc_change change
 
-*export labels
-quietly {
-    log using PAPAB_Codebook.txt, text replace
-    noisily codebook
-    log close
-}
+lab def count4 0 "0" 4 "4"
+lab val s_land_physpract_total count4
+lab val s_land_mngmtpract_total count4
+
+lab def count5 0 "0" 5 "5" 
+lab val s_farm_soil_practtotal count5
+
+*********************************************************************
+*Export label overview
+*********************************************************************
+
+cd "C:\Users\RikL\Projects\papab\notebooks\data\interim\"
+numlabel, add force
 
 *Export variable name + variable label
-numlabel, add force
 preserve
     describe *, replace clear
     list
@@ -890,3 +903,4 @@ restore
 *Export value labels
 uselabel, clear
 export excel lname value label using "ValueLabels_PAPAB", sheetreplace
+

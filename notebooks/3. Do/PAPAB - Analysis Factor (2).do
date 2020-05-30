@@ -719,7 +719,7 @@ export delimited using "PAPAB Impact study - Analysis2 Incl Factors.csv", replac
 *Export label overview
 *********************************************************************
 
-cd "C:\Users\mariekeme\Box\ONL-IMK\2.0 Projects\Current\2018-05 PAPAB Burundi\07. Analysis & reflection\Data & Analysis\4. Output"
+cd ""C:\Users\RikL\Projects\papab\notebooks\data\interim\ValueLabels_PAPAB.xls""
 numlabel, add force
 
 *Export variable name + variable label
