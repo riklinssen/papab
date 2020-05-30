@@ -333,7 +333,8 @@ fig=plt.figure(figsize=((3.13,3.13)), constrained_layout=True)
 for i, gr in enumerate(groups):
     sel=data.loc[gr]
     ax=plt.subplot(4, 1, i+1)
-    sns.distplot(sel['pip_implemented'], hist=True, bins=bins, kde=True,color=cmap[gr])
+    sns.distplot(sel['pip_implemented'], hist=True, bins=bins, kde=True
+    ,color=cmap[gr])
     ax.set_title(gr, color=cmap[gr], loc='left')
     # xaxis
     ax.set_xlim([0,1])
@@ -342,9 +343,8 @@ for i, gr in enumerate(groups):
     ax.grid(False)
        
     # yaxis
-    ax.yaxis.set_visible(False)
-
-    ax.spines['left'].set_visible(False)
+    ax.yaxis.set_visible(True)
+    ax.spines['left'].set_visible(True)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['bottom'].set_visible(True) 
@@ -363,3 +363,45 @@ fig.tight_layout()
 fig.show()
 
 
+
+###alternative: histograms with KDE-line small multiply by gen for % pip-plan completion
+
+gens=list(cmap.keys())
+
+fig,axes=plt.subplots(nrows=4, ncols=1, sharex='col'), figsize=
+
+for (ax, gen, cl) in zip(fig.axes, gens, colors): 
+    sns.distplot(sel['pip_implemented'],norm_hist=False, bins=bins, kde=False,color=cl, ax=ax)
+   
+    # xaxis
+    ax.set_xlim([0,1])
+    ax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+    ax.grid(False)
+    ax.set_xlabel("% of plan completed \n(in % 0-100)")
+
+    # yaxis
+    ax.yaxis.set_visible(True)
+    ax.set_ylabel("No. of\n respondents")
+    ax.spines['left'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(True) 
+    ax.tick_params(which='x', direction='out', bottom=True, size=6, width=2) # can't make ticks visible check later
+    ax.grid(False)
+    
+
+plt.subplots_adjust(hspace=0.6)
+plt.figtext(0, -0.05, "Total n=962" , size='small',  ha="left") 
+plt.suptitle("Integrated Farm-management plan completion\nby generation", y=1.1)
+plt.savefig(graphs/'descr_pip_compl_bygen.svg', bbox_inches='tight')
+fig.tight_layout()
+fig.show()
+
+
+
+figu = sns.FacetGrid(joyd, row="pip_generation_clean",
+                  height=1.7, aspect=4)
+figu.map(sns.distplot(joyd['pip_implemented'], bins=10, kde=True))
+
+
+sns.distplot(joyd['pip_implemented'], bins=10, kde=True)
