@@ -35,7 +35,7 @@ varlabs=pd.read_excel(varlabelfilename, usecols=['name', 'vallab', 'varlab']).dr
 #resultsset
 csvfiles = glob.glob("data\interim\*.csv")
 dflist=[]
-pillars=['motivation', 'stewardship', 'resilience', 'otheroutcomes']
+pillars=['motivation', 'stewardship', 'resilience', 'otheroutcomes', 'foodsec']
 for f in csvfiles: 
     name=f[13:17] # # pip_ =allpip
     pillar=[ p for p in pillars if p in f]
@@ -97,6 +97,9 @@ plotlabels=pd.merge(left=varlabs, right=vallabelset, left_on=['vallab'], right_o
 #plot titles
 plottitles=pd.read_excel(plottitlefilename)
 
+# list of untitled plots
+
+##
 plotlabels=pd.merge(left=plotlabels, right=plottitles, left_on=['name'], right_on=['resultvar'])
 
 plotlabels.drop(columns=['resultvar'], inplace=True)
@@ -133,8 +136,8 @@ dif['color']=np.where(dif.pvalue > 0.05, '#d3d3d3',dif['color'])
 
 avg=avg.set_index(['resultvar', 'generation', ]).sort_index()
 dif=dif.set_index(['resultvar', 'generation', ]).sort_index()
-
-
+#run 
+avg=avg.drop_duplicates()
 
 
 
@@ -177,6 +180,33 @@ def labelpercmid(bars, xpos='center'):
         height=bar.get_height()*0.5
         axs[i].text(bar.get_x() + bar.get_width()*offset[xpos], height,
                 '{}'.format(heightp), ha=ha[xpos], va='bottom', color='white', alpha=1, size='small')
+
+
+def labelperctopmid(bars, xpos='center'):
+    """
+    Attach a text label above each bar in *ax*, displaying its height.
+
+    *xpos* indicates which side to place the text w.r.t. the center of
+    the bar. It can be one of the following {'center', 'right', 'left'}.
+    """
+
+    xpos = xpos.lower()  # normalize the case of the parameter
+    ha = {'center': 'center', 'right': 'left', 'left': 'right'}
+    offset = {'center': 0.5, 'right': 0.57, 'left': 0.43}  # x_txt = x + w*off
+
+    for bar in bars:
+        heightp = format(bar.get_height(), ".0%")
+        if bar.get_height()<0.5:
+            height=bar.get_height()*1.05
+            ha[xpos]='left'
+            kleur=bar.get_facecolor()
+        else: 
+            height=bar.get_height()/2
+            kleur='white'
+
+        
+        axs[i].text(bar.get_x() + bar.get_width()*offset[xpos], height,
+                '{}'.format(heightp), ha=ha[xpos], va='bottom', color=kleur, alpha=1, size='small')
 
 
 idx = pd.IndexSlice
@@ -281,16 +311,18 @@ for i, var in zip(range(1,len(motivation)*2,2), motivation):
  
 
 
-#####Stewardship --knowledge and use of commons-
+#####Stewardship -
+# Awareness of changes & sense of stewardship 					--> s_awa_mean
+# use & knowledge of commons --> s_comm_mean
+#knowledge+ awareness on how to apply physical, land, crop, soil  management practices	--> s_howwhy_mean
 
 
 
 
 
 st_know=['s_awa_mean', 
-'s_farm_why_mean',
-'s_land_why_mean',
-'s_comm_mean']
+'s_comm_mean',
+'s_howwhy_mean']
 
 
 
@@ -322,7 +354,10 @@ for i, var in zip(range(0,len(st_know)*2,2), st_know):
     labelscalemid(bars)
 
     #titles
-    axs[i].set_title(param['pltitle'])
+    if var == 's_awa_mean': 
+        axs[i].set_title("Knowledge & awareness of\nchanges in environment\n& sense of stewardship")
+    else: 
+        axs[i].set_title(param['pltitle'])
 
     #y-axis   
     axs[i].set_ylim(param['yminv'], param['ymaxv'])
@@ -372,7 +407,7 @@ for i, var in zip(range(1,len(st_know)*2,2), st_know):
     axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
     axs[-1].set_xlabel('difference: \n(target-comparison)')
     #title
-    fig.suptitle('Stewardship: knowledge and use of commons\nsubconstructs by generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    fig.suptitle('Stewardship: Knowledge and awareness subconstructs by generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
     plt.figtext(x=-0.4, y=0,s='Left: Averages on subconstruct\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
     fig.subplots_adjust(hspace=0.4) 
     fig.tight_layout()
@@ -385,23 +420,17 @@ for i, var in zip(range(1,len(st_know)*2,2), st_know):
 
 
 #####Stewardship --practices
-st_pract=['s_land_physpract_contourlines',
-'s_land_physpract_conttrack',
-'s_land_mngmtpract_ploughing',
-'s_land_mngmtpract_mulching',
-'s_land_mngmtpract_covercrops',
-'s_farm_soil_compost',
-'s_farm_soil_manure']
-
+#physical practices
+st_pract_phys=['s_land_physpract_contourlines', 's_land_physpract_conttrack',  's_land_physpract_stonebunds',  's_land_physpract_gullycontrol']
 
 idx = pd.IndexSlice
 
-fig, axes = plt.subplots(nrows= len(st_pract), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10))
+fig, axes = plt.subplots(nrows= len(st_pract_phys), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10))
 
 axs=fig.axes
 
   #left hand plots
-for i, var in zip(range(0,len(st_pract)*2,2), st_pract):
+for i, var in zip(range(0,len(st_pract_phys)*2,2), st_pract_phys):
     selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
     apmean=avg.loc[idx[var, 'All PIP* \n (average)'],:]
 
@@ -416,16 +445,18 @@ for i, var in zip(range(0,len(st_pract)*2,2), st_pract):
     yerr=selmean.err, ecolor='black')
 
     #labels
-    labelpercmid(bars)
-
+    labelperctopmid(bars)
     #titles
     axs[i].set_title(param['pltitle'])
 
     #yaxis
-    axs[i].set_ylim([0,1])
-    axs[i].set_ylabel(None)
-    axs[i].yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+    if var != 's_land_physpract_total': 
+        axs[i].set_ylim([0,1])
+        axs[i].set_ylabel(None)
+        axs[i].yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
 
+    else: 
+        axs[i].set_ylabel('Count')
 
     #x-axis
     
@@ -442,7 +473,7 @@ for i, var in zip(range(0,len(st_pract)*2,2), st_pract):
     
 
     # right plot for differences
-for i, var in zip(range(1,len(st_pract)*2,2), st_pract):
+for i, var in zip(range(1,len(st_pract_phys)*2,2), st_pract_phys):
     
     seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
     apdifs=dif.loc[idx[var, 'All PIP* \n (average)'],:]
@@ -452,6 +483,100 @@ for i, var in zip(range(1,len(st_pract)*2,2), st_pract):
     axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
     #x-axis
     axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    axs[i].set_xlim([-0.5,0.5])
+    axs[i].xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+
+    #y-axis
+    axs[i].yaxis.tick_right()
+    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    axs[i].invert_yaxis()
+    #spines
+    axs[i].spines['left'].set_visible(False)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(True)
+    axs[i].spines["right"].set_position(("outward", +5))
+    #grid
+    axs[i].yaxis.grid(True)
+    axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
+    axs[-1].set_xlabel('difference: \n(target-comparison)', ha='center')
+    #title
+    fig.suptitle("Stewardship: Physical practices:\n% of people that applies practice (left)\ndifference between generation and comparison group (right) ", x=-0.4, y=1.05, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=0,s='Left: % of people that applies practice\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals\nDifferences that are not statistically significant (p<0.05) greyed out', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.subplots_adjust(hspace=0.4) 
+    fig.tight_layout()
+    plt.savefig(graphs/"st_pract_phys.svg", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()
+        
+##
+
+
+
+
+#land management practices
+st_pract_land=['s_land_mngmtpract_ploughing', 's_land_mngmtpract_staggering','s_land_mngmtpract_mulching', 's_land_mngmtpract_covercrops', 's_farm_crop_rotation_most']
+
+idx = pd.IndexSlice
+
+fig, axes = plt.subplots(nrows= len(st_pract_land), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10))
+
+axs=fig.axes
+
+  #left hand plots
+for i, var in zip(range(0,len(st_pract_land)*2,2), st_pract_land):
+    selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apmean=avg.loc[idx[var, 'All PIP* \n (average)'],:]
+
+
+    #draw out some parameters
+
+    param={}
+    param=plotlabels_f_dict[var]
+
+    #plot left
+    bars=axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color,  linewidth=4,
+    yerr=selmean.err, ecolor='black')
+
+    #labels
+    labelperctopmid(bars)
+    #titles
+    axs[i].set_title(param['pltitle'])
+
+    #yaxis
+    if var != 's_land_physpract_total': 
+        axs[i].set_ylim([0,1])
+        axs[i].set_ylabel(None)
+        axs[i].yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+
+    else: 
+        axs[i].set_ylabel('Count')
+
+    #x-axis
+    
+
+    #spines
+    axs[i].spines['left'].set_visible(True)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(False)
+    axs[i].spines["left"].set_position(("outward", +5))
+    
+        
+    
+    
+    
+
+    # right plot for differences
+for i, var in zip(range(1,len(st_pract_land)*2,2), st_pract_land):
+    
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apdifs=dif.loc[idx[var, 'All PIP* \n (average)'],:]
+
+    #plot right
+    axs[i].errorbar(y=seldif.index, x=seldif['mean'], xerr=seldif.err, fmt='none', ecolor=seldif.color)
+    axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
+    #x-axis
+    axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    axs[i].set_xlim([-0.5,0.5])
+    axs[i].xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
     #y-axis
     axs[i].yaxis.tick_right()
     axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
@@ -466,14 +591,101 @@ for i, var in zip(range(1,len(st_pract)*2,2), st_pract):
     axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
     axs[-1].set_xlabel('difference: \n(target-comparison)')
     #title
-    fig.suptitle('Stewardship:\nPractices: % of people that applies practice \nby generation', x=-0.4, y=1, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    fig.suptitle("Stewardship: Land mngnt. practices & crop rotation:\n% of people that applies practice (left)\ndifference between generation and comparison group (right) ", x=-0.4, y=1.05, horizontalalignment='left', verticalalignment='top', fontsize = 15)
     plt.figtext(x=-0.4, y=0,s='Left: % of people that applies practice\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals\nDifferences that are not statistically significant (p<0.05) greyed out', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
     fig.subplots_adjust(hspace=0.4) 
     fig.tight_layout()
-    plt.savefig(graphs/"st_pract.svg", dpi=300, facecolor='w', bbox_inches='tight')
+    plt.savefig(graphs/"st_pract_land.svg", dpi=300, facecolor='w', bbox_inches='tight')
     fig.show()
-            
- 
+
+##Soild/fertilizer use
+
+
+st_pract_soil=['s_farm_soil_practcompost' , 's_farm_soil_practmanure', 's_farm_soil_practchemfert', 's_farm_soil_practcomp_chem', 's_farm_soil_practmanure_chem']
+
+
+idx = pd.IndexSlice
+
+fig, axes = plt.subplots(nrows= len(st_pract_soil), ncols=2, sharex='col' , gridspec_kw={'width_ratios': [1.5, 1], 'wspace':0.1,} , figsize=(3.5 ,10))
+
+axs=fig.axes
+
+  #left hand plots
+for i, var in zip(range(0,len(st_pract_soil)*2,2), st_pract_soil):
+    selmean=avg.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apmean=avg.loc[idx[var, 'All PIP* \n (average)'],:]
+
+
+    #draw out some parameters
+
+    param={}
+    param=plotlabels_f_dict[var]
+
+    #plot left
+    bars=axs[i].bar(x=selmean.index, height=selmean['mean'],  color=selmean.color,  linewidth=4,
+    yerr=selmean.err, ecolor='black')
+
+    #labels
+    labelperctopmid(bars)
+    #titles
+    axs[i].set_title(param['pltitle'])
+
+    #yaxis
+    if var != 's_land_physpract_total': 
+        axs[i].set_ylim([0,1])
+        axs[i].set_ylabel(None)
+        axs[i].yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+
+    else: 
+        axs[i].set_ylabel('Count')
+
+    #x-axis
+    
+
+    #spines
+    axs[i].spines['left'].set_visible(True)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(False)
+    axs[i].spines["left"].set_position(("outward", +5))
+    
+        
+    
+    
+    
+
+    # right plot for differences
+for i, var in zip(range(1,len(st_pract_soil)*2,2), st_pract_soil):
+    
+    seldif=dif.loc[idx[var, 'G 1':'G 4'],:].droplevel(0)
+    apdifs=dif.loc[idx[var, 'All PIP* \n (average)'],:]
+
+    #plot right
+    axs[i].errorbar(y=seldif.index, x=seldif['mean'], xerr=seldif.err, fmt='none', ecolor=seldif.color)
+    axs[i].scatter(y=seldif.index, x=seldif['mean'], color=seldif.color)
+    #x-axis
+    axs[i].axvline(linewidth=1.5, ls='-', color='black')
+    axs[i].set_xlim([-0.5,0.5])
+    axs[i].xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+    #y-axis
+    axs[i].yaxis.tick_right()
+    axs[i].tick_params(axis='y', which='major', labelright=True, labelleft=False, labelbottom=True)
+    axs[i].invert_yaxis()
+    #spines
+    axs[i].spines['left'].set_visible(False)
+    axs[i].spines['top'].set_visible(False)
+    axs[i].spines['right'].set_visible(True)
+    axs[i].spines["right"].set_position(("outward", +5))
+    #grid
+    axs[i].yaxis.grid(True)
+    axs[i].grid(which='major', axis='y', linestyle=':',linewidth=1 )
+    axs[-1].set_xlabel('difference: \n(target-comparison)')
+    #title
+    fig.suptitle("Stewardship: Soil management practices:\n% of people that applies practice (left)\ndifference between generation and comparison group (right) ", x=-0.4, y=1.05, horizontalalignment='left', verticalalignment='top', fontsize = 15)
+    plt.figtext(x=-0.4, y=0,s='Left: % of people that applies practice\nRight: differences Generation- (matched) comparison (treatment effect)\nThick lines represent 95% confidence intervals\nDifferences that are not statistically significant (p<0.05) greyed out', fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+    fig.subplots_adjust(hspace=0.4) 
+    fig.tight_layout()
+    plt.savefig(graphs/"st_pract_soil.svg", dpi=300, facecolor='w', bbox_inches='tight')
+    fig.show()
 
 ###resilience
 
@@ -921,7 +1133,7 @@ for i, var in zip(range(1,len(mot)*2,2), mot):
             
  
 
-stew=['stewardship_score_v2'] 
+stew=['stewardship_score_v3'] 
 
 idx = pd.IndexSlice
 
@@ -1021,6 +1233,9 @@ idx = pd.IndexSlice
 pscales_df_pip=avg.loc[idx[pscales,gens],:]
 
 #now construct similar set with comparison group means. 
+#ran one resultvar (crop rotation ) twice by accident. 
+
+results=results.drop_duplicates()
 
 pscales_df_nonpip=results.loc[results['group'].isin(compgroups) & results['resultvar'].isin(pscales)]
 pscales_df_nonpip['generation']=pscales_df_nonpip.group.map(
@@ -1047,7 +1262,7 @@ pscales_df['label']=pscales_df.index.get_level_values(
     'resultvar').map({
         'motivation_score': 'Motivation',
         'resilience_score': 'Resilience',
-        'stewardship_score_v2': 'Stewardship'}
+        'stewardship_score_v3': 'Stewardship'}
         )
 
 #grey out if non sig
