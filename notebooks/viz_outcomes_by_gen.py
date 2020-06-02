@@ -13,7 +13,6 @@ import matplotlib.ticker as mtick
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from matplotlib.dates import DateFormatter
 from statsmodels.stats.weightstats import DescrStatsW
 
 #paths
@@ -1236,7 +1235,7 @@ pscales_df_pip=avg.loc[idx[pscales,gens],:]
 #ran one resultvar (crop rotation ) twice by accident. 
 
 results=results.drop_duplicates()
-
+dif=dif.drop_duplicates()
 pscales_df_nonpip=results.loc[results['group'].isin(compgroups) & results['resultvar'].isin(pscales)]
 pscales_df_nonpip['generation']=pscales_df_nonpip.group.map(
     dict(
@@ -1403,3 +1402,127 @@ for i, var in zip(range(1,len(otherout)*2,2), otherout):
     fig.show()
             
  
+import calendar
+from matplotlib import dates
+
+
+ ##food security
+
+ #notenough
+
+ # line chart (for each generation small multiples) and comparison group, x=% not enough barely enough, y=month
+
+notenoughfood=pd.DataFrame()
+
+note_l=[c for c in results.resultvar.unique() if c.startswith('Notenoughb')]
+enough_l=[c for c in results.resultvar.unique() if c.startswith('Enough_r')]
+data=results.loc[(results['resultvar'].isin(note_l)) & (results['group']!= 'Difference')]
+#remove all pip
+#data=data.loc[data['group']== 'PIP_allpip']
+#month todatetime. 
+data['month']=data.resultvar.apply(lambda x: str(int(re.findall('\d+', x)[0]))+'/01'+'/2019')
+data['month']=pd.to_datetime(data['month'],infer_datetime_format=True )
+#map to month names
+
+#data['monthname'] = pd.to_datetime(data['month'], format='%m').dt.month_name().str.slice(stop=3)
+
+data['err']=data['mean']-data['lb']
+
+data=data.set_index('group')
+
+#gens is a list of lists with combinations of pip and relevant comparison group.
+gens=[
+    list(combi) for combi in zip(
+        [p for p in data.index.unique() if 'Comparison' not in p], 
+        [c for c in data.index.unique() if 'Comparison' in c]
+        )
+        ]
+genlabel, gencolor=data.generation.unique(), data.color.unique()
+fig, axes=plt.subplots(nrows=5, ncols=1, sharex='col', figsize=(3.3, 6))
+axs=fig.axes
+for i,(g, lab,clr) in enumerate(zip(gens, genlabel, gencolor)): 
+    t=g[0]
+    c=g[1]
+    #target
+    means_t=pd.pivot_table(data.loc[g,:], index='month', columns='group', values='mean').sort_index(axis=0).loc[:,[t]]
+    ub_t=pd.pivot_table(data.loc[g,:], index='month', columns='group', values='ub').sort_index(axis=0).loc[:,[t]]
+    lb_t=pd.pivot_table(data.loc[g,:], index='month', columns='group', values='lb').sort_index(axis=0).loc[:,[t]]
+    axs[i].plot(means_t, color=clr)
+    axs[i].plot(means_t.index, lb_t.iloc[:,-1], ub_t.iloc[:,-1],  color=clr, ls=':', alpha=0.5)
+    axs[i].fill_between(means_t.index, lb_t.iloc[:,-1], ub_t.iloc[:,-1],  color=clr, alpha=0.4)
+
+    #comparison
+    means_c=pd.pivot_table(data.loc[g,:], index='month', columns='group', values='mean').sort_index(axis=0).loc[:,[c]]
+    ub_c=pd.pivot_table(data.loc[g,:], index='month', columns='group', values='ub').sort_index(axis=0).loc[:,[c]]
+    lb_c=pd.pivot_table(data.loc[g,:], index='month', columns='group', values='lb').sort_index(axis=0).loc[:,[c]]
+    axs[i].plot(means_c, color='grey')
+    axs[i].fill_between(means_t.index, lb_c.iloc[:,-1], ub_c.iloc[:,-1],  color='grey', alpha=0.2)
+
+    #title
+    axs[i].set_title(lab, color=clr)
+    # y-axis
+    axs[i].yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+
+    sns.despine()
+
+
+
+
+
+##for all pip only --notenough_barely enough
+
+
+
+foodsec_allpip_t=pd.pivot_table(data.loc[['PIP_allpip'],:], index='month', columns='group', values='mean').sort_index(axis=0)
+foodsec_allpip_c=pd.pivot_table(data.loc[['Comparison PIP_allpip'],:], index='month', columns='group', values='mean').sort_index(axis=0)
+foodsec_allpip_t_ub=pd.pivot_table(data.loc[['PIP_allpip'],:], index='month', columns='group', values='ub').sort_index(axis=0)
+foodsec_allpip_t_lb=pd.pivot_table(data.loc[['PIP_allpip'],:], index='month', columns='group', values='lb').sort_index(axis=0)
+foodsec_allpip_c_ub=pd.pivot_table(data.loc[['Comparison PIP_allpip'],:], index='month', columns='group', values='ub').sort_index(axis=0)
+foodsec_allpip_c_lb=pd.pivot_table(data.loc[['Comparison PIP_allpip'],:], index='month', columns='group', values='lb').sort_index(axis=0)
+
+
+from datetime import timedelta
+
+fig, ax1=plt.subplots(1)
+#target
+ax1.plot(foodsec_allpip_t, color='#61A534')
+ax1.plot(foodsec_allpip_t_lb, color='#61A534', ls=':')
+ax1.plot(foodsec_allpip_t_ub, color='#61A534', ls=':')
+ax1.fill_between(foodsec_allpip_t.index, foodsec_allpip_t_lb.iloc[:,-1], foodsec_allpip_t_ub.iloc[:,-1],  color='#61A534', alpha=0.2)
+#comp
+ax1.plot(foodsec_allpip_c, color='grey')
+ax1.plot(foodsec_allpip_c_lb, color='grey', ls=':', alpha=0.2)
+ax1.plot(foodsec_allpip_c_ub, color='grey', ls=':', alpha=0.2)
+ax1.fill_between(foodsec_allpip_c.index, foodsec_allpip_c_lb.iloc[:,-1], foodsec_allpip_c_ub.iloc[:,-1],  color='grey', alpha=0.2)
+
+# y-axis
+ax1.set_ylim(0,1)
+ax1.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+
+#x-axis
+
+ax1.xaxis.set_major_locator(mdates.MonthLocator(interval=1))
+ax1.xaxis.set_major_formatter(mdates.DateFormatter('%b')) 
+
+maxmonth_t=foodsec_allpip_t.index.max()
+maxmmonth_t_v=foodsec_allpip_t.loc[maxmonth_t][0]
+
+maxmonth_c=foodsec_allpip_c.index.max()
+maxmmonth_c_v=foodsec_allpip_c.loc[maxmonth_t][0]
+
+ax1.text(x=maxmonth_t, y=maxmmonth_t_v, s=' All-pip farmers*', color='#61A534', va='center', ha='left')
+ax1.text(x=maxmonth_c, y=maxmmonth_c_v, s=' Comparison\n group', color='grey', va='center', ha='left')
+ax1.grid(axis='y', linestyle=':', )
+sns.despine()
+fig.suptitle(x=0.5, y=1.1, t="Food security: % of farmers who report to have\nnot enough, or barely enough food, by month\nAll PIP-farmers vs. (matched) comparison group", color='black')
+plt.figtext(x=0, y=-0.1,s="Line represent percentage of farmers reporting to have not enough, or barely enough food in each month.\nShaded areas are 95% confidence intervals, n=897\n*Computed using sampling weights to correct for overrepresentation of earlier generations in the sample", fontsize='small', fontstyle='italic', fontweight='light', color='gray')
+
+plt.savefig(graphs/"food_security_not_enoughb.svg", facecolor='w', bbox_inches='tight')
+
+
+
+
+
+#data['monthname'] = pd.to_datetime(data['month'], format='%m').dt.month_name().str.slice(stop=3)
+
+months=[ c for c in pd.to_datetime(foodsec_allpip_t.index, format='%m').month_name().str.slice(stop=3)]
