@@ -669,7 +669,7 @@ foreach 	x in `outcomes_s'  {
 //not enough food (not enough + barely)
 
 
-//Enough food 
+//not Enough/ barely enough food 
 //setting the locals
 local	 outcomes_s		Notenoughb_r_res_food_1 Notenoughb_r_res_food_2 Notenoughb_r_res_food_3 Notenoughb_r_res_food_4 Notenoughb_r_res_food_5 Notenoughb_r_res_food_6 Notenoughb_r_res_food_7 Notenoughb_r_res_food_8 Notenoughb_r_res_food_9 Notenoughb_r_res_food_10 Notenoughb_r_res_food_11 Notenoughb_r_res_food_12
 local	 probit_s		Notenoughb_r_res_food_1 Notenoughb_r_res_food_2 Notenoughb_r_res_food_3 Notenoughb_r_res_food_4 Notenoughb_r_res_food_5 Notenoughb_r_res_food_6 Notenoughb_r_res_food_7 Notenoughb_r_res_food_8 Notenoughb_r_res_food_9 Notenoughb_r_res_food_10 Notenoughb_r_res_food_11 Notenoughb_r_res_food_12
