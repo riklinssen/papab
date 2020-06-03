@@ -243,7 +243,7 @@ compldata=compldata.rename(columns=pillarlabels)
 compldata.columns=([i.replace(' (','\n(') for i in compldata.columns])
 
 complcorr=list(compldata.corr().loc["% of pip plan completed"].iloc[:-2])
-scatkws={'color':'#FBC43A', 's': 3, 'alpha': 0.5}
+scatkws={'color':'#FBC43A', 's': 3, 'alpha': 0.5, 'clip_on': False}
 
 
 fig, (ax1, ax2, ax3) =plt.subplots(nrows=3, ncols=1, sharex='row', figsize=(3,3*1.61))
