@@ -163,8 +163,7 @@ pip-selfcheck.json
 requirements.txt
 
 #other stuff in my folders
-docs/*
-!src/docs/.keep
+
 
 
 docs/sampling/
