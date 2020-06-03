@@ -36,7 +36,7 @@ graphs = root/"graphs"
 
 # dataset indiv level
 select = ['id, ''resilience_score', 'motivation_score',
-    'stewardship_score_v2', 'pip_generation_clean']
+    'stewardship_score_v3', 'pip_generation_clean']
 cleanf = clean/"PAPAB Impact study - Analysis2 Incl Factors.dta"
 
 
@@ -44,10 +44,10 @@ clean = pd.read_stata(cleanf, convert_categoricals=False)
 
 # correlations between pillars (raw)
 pillars = ['motivation_score', 'resilience_score',
-    'stewardship_score_v2', 'pip_generation_clean']
+    'stewardship_score_v3', 'pip_generation_clean']
 pillarlabels = {'motivation_score': 'Motivation (score 0-100)',
         'resilience_score': 'Resilience (score 0-100)',
-        'stewardship_score_v2': 'Stewardship (score 0-100)'}
+        'stewardship_score_v3': 'Stewardship (score 0-100)'}
 
 # colormap for generations
 cmapgens = {'G 1': '#0B9CDA',
@@ -62,7 +62,7 @@ cmapgens = {'G 1': '#0B9CDA',
 #motivation sub-constructs --> reslience & stewardship
 
 motivsub=['m_pur_pr', 'm_aut_pr', 'm_att_pr', 'm_hhsup_pr',  'm_vilsup_pr']
-pils=['resilience_score', 'stewardship_score_v2']
+pils=['resilience_score', 'stewardship_score_v3']
 selcols=motivsub + pils
 motiv=clean.loc[:,selcols]
 
@@ -75,21 +75,28 @@ motiv_corr = motiv_corr.rename(index = {'m_pur_pr': 'Purpose',
                                         'm_hhsup_pr': 'Household support',
                                         'm_vilsup_pr': 'Village support'},
                                columns = {'resilience_score': 'Resilience',
-                                          'stewardship_score_v2': 'Stewardship'}).sort_values(by='Resilience', ascending=False)
+                                          'stewardship_score_v3': 'Stewardship'}).sort_values(by='Resilience', ascending=False)
 
 #same for resilience --> stewardship
-res_sub=['resilience_pr1', 
-'resilience_pr2',
+res_sub=['resilience_pr1', 'r_res_pr', 
+'r_cop_pr',
 'resilience_pr3']
-pils2=['stewardship_score_v2']
+
+# resilience_pr1 	"pr. Scores for comp1 - crop diversity-"
+# resilience_pr3    "pr. Scores for comp3 - livestock situation -"
+# r_res_pr --> household resilience
+# r_cop_pr --> household coping
+
+pils2=['stewardship_score_v3']
 rescols=res_sub+pils2
 
 res=clean.loc[:, rescols]
 res_corr=pd.DataFrame(res.corr()).loc[res_sub,pils2]
 res_corr = res_corr.rename(index={'resilience_pr1': 'Crop diversity',
-                                  'resilience_pr2': 'HH-resilience & coping ability',
+                                  'r_res_pr': 'HH-resilience',
+                                  'r_cop_pr': 'HH-coping ability',
                                   'resilience_pr3': 'Livestock situation'}, 
-                                  columns={'stewardship_score_v2': 'Stewardship'}).sort_values(by='Stewardship', ascending=False)
+                                  columns={'stewardship_score_v3': 'Stewardship'}).sort_values(by='Stewardship', ascending=False)
 # correlation_plot motivation--> stewardship AND resilience
 
 sns.set_style('ticks')
@@ -101,7 +108,8 @@ ax1.tick_params(axis='x', bottom=False, top=True, labelbottom=False, labeltop=Tr
 ax1.xaxis.set_label_position('top')
 f.suptitle('Correlation-coefficients*\nMotivation (sub-constructs)\nand Resilience & Stewardship', x=-0.5, y=1.3, ha='left')
 plt.figtext(-0.5,-0.1, "* Pearson's r\nranging from -1 perfect negative correlation to 1, perfect positive correlation\nDarker green represents stronger positive correlation\nDarker purple represent stronger negative correlation\nall cofficients significant at p<0.01", size='x-small')
-plt.savefig(graphs/'motivation_correlations.svg', bbox_inches='tight')
+plt.show()
+#plt.savefig(graphs/'motivation_correlations.svg', bbox_inches='tight')
 
 
 
@@ -153,7 +161,7 @@ for r,c in zip(rw,clm):
     #get correlation coefficient (same indexing as plot because symmetry)
     r=corrs.iat[r,c]
     #format
-    s= 'r = '+ '{:.2f}'.format(r)
+    s= 'r = '+ "{:.2f}".format(r)
     ax.text(x=0.2,y=0.9, s=s , ha='center', va='center', color='#E70052', fontstyle='italic', transform=ax.transAxes )
     #make labels bigger
     ax.xaxis.set_label_text(ax.xaxis.get_label_text(),size='large')
@@ -181,11 +189,11 @@ plt.savefig(graphs/'pillar_correlations.svg', bbox_inches='tight')
 
 pillar_gender = clean.loc[:,['motivation_score',
  'resilience_score',
- 'stewardship_score_v2',
+ 'stewardship_score_v3',
   'head_type']]
 
 f1=sns.lmplot(x='motivation_score', y= 'resilience_score',  col='head_type', data=pillar_gender)
-f2=sns.lmplot(x='resilience_score', y= 'stewardship_score_v2',  col='head_type', data=pillar_gender)
+f2=sns.lmplot(x='resilience_score', y= 'stewardship_score_v3',  col='head_type', data=pillar_gender)
 
 #caclulate correlation cooefficients
 #corrs=pillar_df.corr()
@@ -200,7 +208,7 @@ for r,c in zip(rw,clm):
     #get correlation coefficient (same indexing as plot because symmetry)
     r=corrs.iat[r,c]
     #format
-    s= 'r = '+ '{:.2f}'.format(r)
+    s= 'r = '+ "{:.2f}".format(r)
     ax.text(x=0.2,y=0.9, s=s , ha='center', va='center', color='#E70052', fontstyle='italic', transform=ax.transAxes )
     #make labels bigger
     ax.xaxis.set_label_text(ax.xaxis.get_label_text(),size='large')
@@ -215,7 +223,7 @@ axs[0,0].yaxis.set_label_text('Motivation (score 0-100)',size='large')
 fig=plt.gcf()
 fig.suptitle('Correlation between pillars:\nScores for motivation, resilience, and stewardship plotted against eachother\nDistributions of scores on diagonals', x=0, y=1.1, ha='left', size='x-large')
 plt.figtext(0,-0.1, "r = Pearson's r ranging from -1 perfect negative correlation to 1, perfect positive correlation\nall correlation coefficients significant at p<0.01\nfull sample, n=962", size='small')
-plt.savefig(graphs/'resilience_correlations.svg', bbox_inches='tight')
+plt.savefig(graphs/'pillar_correlations.svg', bbox_inches='tight')
 
 
 
@@ -235,7 +243,7 @@ compldata=compldata.rename(columns=pillarlabels)
 compldata.columns=([i.replace(' (','\n(') for i in compldata.columns])
 
 complcorr=list(compldata.corr().loc["% of pip plan completed"].iloc[:-2])
-
+scatkws={'color':'#FBC43A', 's': 3, 'alpha': 0.5}
 
 
 fig, (ax1, ax2, ax3) =plt.subplots(nrows=3, ncols=1, sharex='row', figsize=(3,3*1.61))
@@ -244,7 +252,7 @@ for ax,r in zip(fig.axes, complcorr):
     ax.set_xlim(0, 1)
     ax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
     ax.xaxis.set_label("% of pip plan completed")
-    s= 'r = '+ '{:.2f}'.format(r)
+    s=  'r = '+ "{:.2f}".format(r)
     ax.text(x=0.2,y=0.9, s=s , ha='center', va='center', color='#E70052', fontstyle='italic', transform=ax.transAxes )
 
 plt.subplots_adjust(bottom = 0.2, top =1.3, wspace=0.5, left=0.2)
@@ -270,4 +278,6 @@ plt.savefig(graphs/'pip_completion_corr.svg', bbox_inches='tight')
 
 
 plt.show()
+
+
 
