@@ -32,6 +32,14 @@ replace pip_no=0 if pip_allpip==1
 lab val pip_no binary
 lab var pip_no "comparison ==1"
 
+
+*check for outliers land hectares
+gen land_hectares2=land_hectares
+replace land_hectares2=. if land_hectares2>3.5
+*doesnt do much
+bysort pip_generation_clean: egen landhectares_median_bygen=median(land_hectares)
+
+
 /*********************************************************************
 *Pillar 1: Motivation
 *********************************************************************
