@@ -251,39 +251,6 @@ plt.savefig(graphs/'descr_farmchars.svg', bbox_inches='tight')
 
 
 
-#hectares
-sel=farmchars.loc['land_hectares'].reset_index()
-
-#order the same as other plots
-sel2=sel.iloc[2:]
-sel2=sel2.append(sel.iloc[:2])
-
-
-
-fig, ax=plt.subplots(figsize=(3.13,3.13))
-sel2['color']=sel2['group'].map(cmapgens)
-ax1=ax.bar(height=sel2['prop'], x=sel2['group'], color=sel2['color'])
-
-rects = ax1.patches
-# For each bar: Place a label
-for rect in rects:
-    # Get X and Y placement of label from rect.
-    y_value = rect.get_height()
-    x_place= rect.get_x()+(rect.get_width()/2)
-    y_place = rect.get_height()*1.01
-    label = round(y_value,1)
-    kleur=rect.get_facecolor()
-    ax.text(x_place, y_place, label, horizontalalignment='center', size='small', color=kleur)
-for ax in fig.axes: 
-    ax.tick_params(axis='x',which= 'major', length=2, labelrotation=90, labelsize='medium', pad=0.05)
-    ax.set_ylabel('Average land use (in ha)', fontstyle='oblique')
-    ax.set_title('Land use \n(rented + owned), \nby generation')
-
-
-sns.despine()
-plt.figtext(0, -0.1, "Total n=962", size='small',  ha="left") 
-plt.savefig(graphs/'descr_farmchars_landuse.svg', bbox_inches='tight')
-
 ###pip completion
 cleanf=clean/"PAPAB Impact study - Ready for analysis.dta"
 clean=pd.read_stata(cleanf)
