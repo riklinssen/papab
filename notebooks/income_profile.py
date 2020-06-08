@@ -154,7 +154,7 @@ top10=top9.append((pd.Series(1-top9.sum(), name='other sources of income')))
 #check if addup
 all(top10.sum()==1)
 toplabels={'r_inc_farm_sh_subscrop': 'Crop production\nhome consumption', 
-    'r_inc_farm_sh_salefieldcrop': 'Prod. & sale \nof field crops', 
+    'r_inc_farm_sh_salefieldcrop': 'Prod. & sale \nof food crops', 
     'r_inc_farm_sh_salecashcrop': 'Prod. & sales of\ncash crops', 
     'r_inc_farm_sh_salelivestock': 'Prod. & sales of\nlivestock\n& products', 
     'r_inc_farm_sh_unskilledday': 'Unskilled\ndaily labour', 
