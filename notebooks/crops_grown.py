@@ -99,10 +99,10 @@ crops_t_per=crops_t.loc[
 
 
 fig, (ax1, ax2)=plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(3,7))
-ax1.barh(y=crops_t_an.label, width=crops_t_an.Total)
+ax1.barh(y=crops_t_an.label, width=crops_t_an.Total, color='#61A534')
 ax1.set_title('annual', fontstyle='italic')
 
-ax2.barh(y=crops_t_per.label, width=crops_t_per.Total)
+ax2.barh(y=crops_t_per.label, width=crops_t_per.Total, color='#61A534')
 ax2.set_title('perennial', fontstyle='italic')
 
 for ax in fig.axes: 
@@ -124,7 +124,7 @@ sns.despine()
 
 
 fig.suptitle('Crops cultivated:\n% of farmers that cultivate crop', x=0, y=1.05, ha='left')
-plt.figtext(x=0, y=-0.05, s='Percentages represent share of respondents that cultivate crop.\15 most often cultivated crops shown for brevity\nn=962 (all generations, incl. comparison group)',fontweight='light', color='gray', size='small')
+plt.figtext(x=0, y=-0.05, s='Percentages represent share of respondents that cultivate crop.\n most often cultivated crops shown for brevity\nn=962 (all generations, incl. comparison group)',fontweight='light', color='gray', size='small')
 
 plt.subplots_adjust(hspace=0.6)
 fig.tight_layout()
