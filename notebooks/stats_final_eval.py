@@ -137,7 +137,10 @@ suptitle_dict={ 'pip_improvedecon': "% of household who improved their living en
  'nogroup_interest': "% of non-associated households who are interested in associating in a group",
  'r_listen': "% of households who have listened to radio mboniyongana"}
 
+#create empty df for exporting tables
+dfs={}
 ####################plot_loop#####################
+sns.set_context('paper')
 for ind in percent: 
     # totals
     totals = pd.DataFrame(data.groupby(
@@ -153,11 +156,12 @@ for ind in percent:
                                     ind].mean()).reset_index()
 
 
+    ratios={'height_ratios': [1], 'width_ratios': [1,2,5,7]}
 
 
 
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=1, ncols=4,
-                                            sharey='row',  gridspec_kw=ratios, figsize=(6, 3.3))
+                                            sharey='row',  gridspec_kw=ratios)
     # plot data
     sns.barplot(x="total", y=ind,
                 data=totals, ax=ax1, color='black')
@@ -194,7 +198,77 @@ for ind in percent:
     plt.figtext(x=0, y=-0.3,s="Source: PIP-impact study, n="+ str(n), fontsize='small', fontstyle='italic', fontweight='light', color='gray')
 
     #filename
-    filename=graphs/"FE_{}.png".format(ind)
+    filename=graphs/"FE_{}.svg".format(ind)
+    fig.show()
+    fig.savefig(filename, facecolor='w', bbox_inches='tight')
+    #save data to export to xls for tabular format
+    dfs[ind]=pd.concat([totals,gender, generation, generationgender], axis=0 )
 
-    fig.savefig(filename, dpi=300, facecolor='w', bbox_inches='tight')
 
+
+# Create a Pandas Excel writer using XlsxWriter as the engine.
+from pandas.io.excel import ExcelWriter
+
+with ExcelWriter(interim/'final_evaluation_stats.xlsx') as writer:
+    for ind in percent: 
+        dfs[ind]['percentage'] = dfs[ind][ind].astype(float).map(lambda n: '{:.0%}'.format(round(n,2)))
+        dfs[ind].loc[:, ['total', 'gender', 'pip_g','percentage']].to_excel(writer, sheet_name=ind, index=False)
+
+# Fertilizer info
+
+
+
+#cols=
+cols=[c for c in cleaned.columns if  'fert' in c and 's_farm_' not in c]
+
+#knowledge about fertilizer programmes
+knowfert_d=pd.get_dummies(cleaned['fertknow'].replace({'Refuse to answer': np.nan}), prefix='fertknow_')
+ind=[ c for c in knowfert_d.columns]
+for c in disag:
+    knowfert_d[c]=cleaned[c]
+    
+#make pies
+ind='accessfert_pnseb'
+data=cleaned.loc[:, ['total', 'gender', 'pip_g', 'accessfert_pnseb']]
+#remove missings/refuse to anser set new categories 
+cats=['Yes', 'No']
+data['accessfert_pnseb']=data['accessfert_pnseb'].cat.set_categories(new_categories=cats, ordered=False)
+data[ind].astype() pd.get_dummies(data.loc[data[ind]!='Refuse to answer'], categories=cats)
+totals = pd.DataFrame(data.groupby(
+        'total')[ind].mean()).reset_index()
+    # by gender
+gender = pd.DataFrame(data.groupby('gender')[
+                        ind].mean()).reset_index()
+    # by generation
+generation = pd.DataFrame(data.groupby(
+        'pip_g')[ind].mean()).reset_index()
+
+generationgender = pd.DataFrame(data.groupby(['pip_g', 'gender'])[
+                                    ind].mean()).reset_index()
+
+
+
+
+
+
+
+labels = [ "Don't know", "No", "Yes, PNSEB", "Yes, but\ndon't know name", "Yes, \nother fert. programme"]
+
+
+#first by total and gender
+fig, axs=plt.subplots(1,3)
+axs[0].set_title('Total', loc='left')
+axs[0].pie(totals.iloc[:,1:], labels=labels, autopct='%1.1f%%', textprops={'color':"w", 'size':'small'})
+axs[1].set_title('Men')
+axs[2].set_title('Women')
+
+fig.show()
+
+knowfert=cleaned['fertknow'].cat.codes.value_counts(dropna=False)
+
+
+#has acces to PNSEB
+
+fig, ax=plt.subplots()
+ax.set_title('% of households that has access to PNSEB programme')
+ax[0].pie()
